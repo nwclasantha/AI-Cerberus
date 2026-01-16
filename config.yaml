@@ -1,0 +1,80 @@
+analysis:
+  entropy_block_size: 256
+  max_disasm_instructions: 5000
+  max_file_size: 104857600
+  max_file_size_mb: 500
+  max_strings: 10000
+  timeout: 300
+  yara_timeout: 60
+application:
+  name: Malware Analysis Platform
+  organization: Security Research
+  version: 1.0.0
+database:
+  echo: false
+  path: ~/.malware_analyzer/analysis.db
+  pool_size: 5
+export:
+  default_format: json
+  formats:
+  - json
+  - csv
+  - pdf
+  - stix
+  include_raw_data: false
+integrations:
+  cuckoo:
+    api_key: ''
+    api_url: http://localhost:8090
+    enabled: false
+  custom_sandbox:
+    enabled: true
+    host: 192.168.0.254
+    username: root
+    password: z80cpu
+    port: 22
+  hybrid_analysis:
+    api_key: ''
+    enabled: false
+    environment: win10x64
+  malwarebazaar:
+    enabled: true
+  virustotal:
+    api_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    enabled: true
+    rate_limit: 4
+logging:
+  backup_count: 5
+  file: ~/.malware_analyzer/logs/app.log
+  format: json
+  level: INFO
+  max_size_mb: 50
+ml:
+  confidence_threshold: 0.7
+  ensemble:
+    neural_network:
+      activation: relu
+      hidden_layers:
+      - 128
+      - 64
+      - 32
+    random_forest:
+      max_depth: 15
+      n_estimators: 100
+    xgboost:
+      max_depth: 8
+      n_estimators: 100
+  model_path: ~/.malware_analyzer/models
+plugins:
+  auto_load: true
+  directory: ~/.malware_analyzer/plugins
+  enabled: true
+ui:
+  font_family: Segoe UI
+  font_size: 14
+  theme: dark
+  window:
+    height: 1000
+    min_height: 800
+    min_width: 1200
+    width: 1600

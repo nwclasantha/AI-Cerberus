@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#39c5cf;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3fb950;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dangerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f85149;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d29922;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#58a6ff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background glow -->
+  <circle cx="128" cy="128" r="128" fill="url(#glowGradient)"/>
+
+  <!-- Main shield shape -->
+  <path d="M 128 30 L 200 60 L 200 120 Q 200 190 128 226 Q 56 190 56 120 L 56 60 Z"
+        fill="#161b22"
+        stroke="url(#mainGradient)"
+        stroke-width="4"/>
+
+  <!-- Inner shield border -->
+  <path d="M 128 45 L 185 68 L 185 118 Q 185 175 128 205 Q 71 175 71 118 L 71 68 Z"
+        fill="none"
+        stroke="url(#mainGradient)"
+        stroke-width="2"
+        opacity="0.5"/>
+
+  <!-- Binary code streams (flowing data) -->
+  <text x="75" y="90" font-family="monospace" font-size="14" fill="url(#mainGradient)" opacity="0.6">101010</text>
+  <text x="75" y="110" font-family="monospace" font-size="14" fill="url(#mainGradient)" opacity="0.4">110011</text>
+  <text x="145" y="100" font-family="monospace" font-size="14" fill="url(#mainGradient)" opacity="0.5">010101</text>
+  <text x="145" y="120" font-family="monospace" font-size="14" fill="url(#mainGradient)" opacity="0.3">001100</text>
+
+  <!-- Central eye/scanner symbol (AI detection) -->
+  <ellipse cx="128" cy="135" rx="35" ry="25" fill="none" stroke="url(#mainGradient)" stroke-width="3"/>
+  <circle cx="128" cy="135" r="15" fill="url(#mainGradient)"/>
+  <circle cx="128" cy="135" r="8" fill="#f85149"/>
+
+  <!-- Scanning lines -->
+  <line x1="95" y1="135" x2="115" y2="135" stroke="url(#mainGradient)" stroke-width="2" opacity="0.7"/>
+  <line x1="141" y1="135" x2="161" y2="135" stroke="url(#mainGradient)" stroke-width="2" opacity="0.7"/>
+
+  <!-- Warning indicators (top corners) -->
+  <circle cx="105" cy="75" r="6" fill="#f85149" opacity="0.8"/>
+  <circle cx="151" cy="75" r="6" fill="#d29922" opacity="0.8"/>
+
+  <!-- Detection grid -->
+  <line x1="90" y1="160" x2="166" y2="160" stroke="url(#mainGradient)" stroke-width="1" opacity="0.3"/>
+  <line x1="90" y1="170" x2="166" y2="170" stroke="url(#mainGradient)" stroke-width="1" opacity="0.3"/>
+  <line x1="90" y1="180" x2="166" y2="180" stroke="url(#mainGradient)" stroke-width="1" opacity="0.3"/>
+
+  <!-- Graph/analysis bars -->
+  <rect x="95" y="175" width="8" height="15" fill="url(#mainGradient)" opacity="0.6"/>
+  <rect x="108" y="168" width="8" height="22" fill="url(#mainGradient)" opacity="0.7"/>
+  <rect x="121" y="172" width="8" height="18" fill="url(#dangerGradient)" opacity="0.8"/>
+  <rect x="134" y="165" width="8" height="25" fill="url(#dangerGradient)" opacity="0.9"/>
+  <rect x="147" y="170" width="8" height="20" fill="url(#mainGradient)" opacity="0.6"/>
+
+  <!-- Bottom text: "V" for Viper -->
+  <text x="113" y="210" font-family="sans-serif" font-size="42" fill="url(#mainGradient)" font-weight="bold">V</text>
+</svg>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple, high-contrast icon for taskbar/small sizes -->
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#0d1117" stroke="#58a6ff" stroke-width="4"/>
+
+  <!-- Shield -->
+  <path d="M 64 20 L 95 30 L 95 60 Q 95 90 64 105 Q 33 90 33 60 L 33 30 Z"
+        fill="none"
+        stroke="url(#shieldGrad)"
+        stroke-width="5"/>
+
+  <!-- Three heads simplified as circles with eyes -->
+  <!-- Left head -->
+  <circle cx="48" cy="50" r="10" fill="#58a6ff"/>
+  <circle cx="48" cy="50" r="3" fill="#f85149"/>
+
+  <!-- Center head -->
+  <circle cx="64" cy="45" r="12" fill="#3fb950"/>
+  <circle cx="61" cy="45" r="2.5" fill="#f85149"/>
+  <circle cx="67" cy="45" r="2.5" fill="#f85149"/>
+
+  <!-- Right head -->
+  <circle cx="80" cy="50" r="10" fill="#d29922"/>
+  <circle cx="80" cy="50" r="3" fill="#f85149"/>
+
+  <!-- Central AI symbol -->
+  <rect x="56" y="68" width="16" height="16" rx="2" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+  <text x="59" y="79" font-family="sans-serif" font-size="10" fill="#fff" font-weight="bold">AI</text>
+</svg>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1f2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3548;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="viperGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#39c5cf;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#58a6ff;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#bgGradient)" stroke="#58a6ff" stroke-width="3"/>
+
+  <!-- Shield outline -->
+  <path d="M 128 40 L 180 60 L 180 110 Q 180 170 128 200 Q 76 170 76 110 L 76 60 Z"
+        fill="url(#shieldGradient)"
+        opacity="0.2"
+        stroke="url(#shieldGradient)"
+        stroke-width="2"/>
+
+  <!-- Viper snake design (stylized DNA/code helix) -->
+  <!-- Head -->
+  <ellipse cx="128" cy="85" rx="18" ry="22" fill="url(#viperGradient)" filter="url(#glow)"/>
+
+  <!-- Eyes (glowing) -->
+  <circle cx="122" cy="82" r="3" fill="#f85149" opacity="0.9"/>
+  <circle cx="134" cy="82" r="3" fill="#f85149" opacity="0.9"/>
+
+  <!-- Fangs -->
+  <path d="M 124 92 L 122 98" stroke="#f85149" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 132 92 L 134 98" stroke="#f85149" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Body (S-curve like DNA helix and binary code) -->
+  <path d="M 128 107 Q 145 120 140 140 Q 135 160 128 170 Q 120 180 115 190"
+        stroke="url(#viperGradient)"
+        stroke-width="12"
+        fill="none"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+
+  <!-- Binary code pattern on snake body -->
+  <text x="132" y="125" font-family="monospace" font-size="10" fill="#0d1117" font-weight="bold">1</text>
+  <text x="138" y="145" font-family="monospace" font-size="10" fill="#0d1117" font-weight="bold">0</text>
+  <text x="125" y="165" font-family="monospace" font-size="10" fill="#0d1117" font-weight="bold">1</text>
+
+  <!-- Tail with code symbols -->
+  <path d="M 115 190 Q 108 195 105 200"
+        stroke="url(#viperGradient)"
+        stroke-width="8"
+        fill="none"
+        stroke-linecap="round"
+        opacity="0.8"/>
+
+  <!-- Magnifying glass overlay (analysis symbol) -->
+  <circle cx="170" cy="170" r="22" fill="none" stroke="#58a6ff" stroke-width="4" opacity="0.7"/>
+  <line x1="186" y1="186" x2="200" y2="200" stroke="#58a6ff" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Code brackets (< >) around everything -->
+  <text x="45" y="140" font-family="monospace" font-size="48" fill="#58a6ff" opacity="0.3" font-weight="bold">&lt;</text>
+  <text x="195" y="140" font-family="monospace" font-size="48" fill="#58a6ff" opacity="0.3" font-weight="bold">&gt;</text>
+
+  <!-- Warning triangle at top -->
+  <path d="M 128 30 L 138 45 L 118 45 Z" fill="#f85149" opacity="0.6"/>
+  <text x="125.5" y="43" font-family="sans-serif" font-size="11" fill="#0d1117" font-weight="bold">!</text>
+</svg>

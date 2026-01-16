@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for modern look -->
+    <linearGradient id="headGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="headGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2ea043;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="headGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d29922;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9e6a03;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#21262d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowRed">
+      <stop offset="0%" style="stop-color:#f85149;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#f85149;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background shield -->
+  <path d="M 128 20 L 215 50 L 215 130 Q 215 200 128 236 Q 41 200 41 130 L 41 50 Z"
+        fill="url(#bodyGradient)"
+        stroke="#58a6ff"
+        stroke-width="3"/>
+
+  <!-- Inner shield decoration -->
+  <path d="M 128 35 L 200 60 L 200 125 Q 200 185 128 215 Q 56 185 56 125 L 56 60 Z"
+        fill="none"
+        stroke="#30363d"
+        stroke-width="2"
+        opacity="0.5"/>
+
+  <!-- Three heads of Cerberus (representing ML, YARA, Behavioral) -->
+
+  <!-- LEFT HEAD - Blue (ML/AI Detection) -->
+  <g filter="url(#glow)">
+    <!-- Head shape -->
+    <ellipse cx="80" cy="90" rx="22" ry="28" fill="url(#headGradient1)" stroke="#1f6feb" stroke-width="2"/>
+    <!-- Ear -->
+    <path d="M 68 75 L 60 65 L 70 70 Z" fill="url(#headGradient1)"/>
+    <!-- Eye (glowing) -->
+    <circle cx="80" cy="85" r="5" fill="#f85149"/>
+    <circle cx="80" cy="85" r="2" fill="#fff"/>
+    <!-- Snout -->
+    <ellipse cx="80" cy="100" rx="12" ry="8" fill="#1f6feb" opacity="0.7"/>
+    <!-- Teeth/fangs -->
+    <line x1="75" y1="102" x2="73" y2="108" stroke="#fff" stroke-width="2"/>
+    <line x1="85" y1="102" x2="87" y2="108" stroke="#fff" stroke-width="2"/>
+    <!-- Label: ML -->
+    <text x="69" y="120" font-family="monospace" font-size="10" fill="#58a6ff" font-weight="bold">ML</text>
+  </g>
+
+  <!-- CENTER HEAD - Green (YARA Detection) -->
+  <g filter="url(#glow)">
+    <!-- Head shape (larger/dominant) -->
+    <ellipse cx="128" cy="95" rx="26" ry="32" fill="url(#headGradient2)" stroke="#2ea043" stroke-width="2"/>
+    <!-- Ears -->
+    <path d="M 112 75 L 105 62 L 115 70 Z" fill="url(#headGradient2)"/>
+    <path d="M 144 75 L 151 62 L 141 70 Z" fill="url(#headGradient2)"/>
+    <!-- Eyes (glowing red) -->
+    <circle cx="120" cy="90" r="5" fill="#f85149"/>
+    <circle cx="120" cy="90" r="2" fill="#fff"/>
+    <circle cx="136" cy="90" r="5" fill="#f85149"/>
+    <circle cx="136" cy="90" r="2" fill="#fff"/>
+    <!-- Snout -->
+    <ellipse cx="128" cy="107" rx="14" ry="10" fill="#2ea043" opacity="0.7"/>
+    <!-- Teeth/fangs -->
+    <line x1="122" y1="110" x2="120" y2="118" stroke="#fff" stroke-width="2"/>
+    <line x1="134" y1="110" x2="136" y2="118" stroke="#fff" stroke-width="2"/>
+    <!-- Label: YARA -->
+    <text x="108" y="135" font-family="monospace" font-size="10" fill="#3fb950" font-weight="bold">YARA</text>
+  </g>
+
+  <!-- RIGHT HEAD - Orange (Behavioral Detection) -->
+  <g filter="url(#glow)">
+    <!-- Head shape -->
+    <ellipse cx="176" cy="90" rx="22" ry="28" fill="url(#headGradient3)" stroke="#9e6a03" stroke-width="2"/>
+    <!-- Ear -->
+    <path d="M 188 75 L 196 65 L 186 70 Z" fill="url(#headGradient3)"/>
+    <!-- Eye (glowing) -->
+    <circle cx="176" cy="85" r="5" fill="#f85149"/>
+    <circle cx="176" cy="85" r="2" fill="#fff"/>
+    <!-- Snout -->
+    <ellipse cx="176" cy="100" rx="12" ry="8" fill="#9e6a03" opacity="0.7"/>
+    <!-- Teeth/fangs -->
+    <line x1="171" y1="102" x2="169" y2="108" stroke="#fff" stroke-width="2"/>
+    <line x1="181" y1="102" x2="183" y2="108" stroke="#fff" stroke-width="2"/>
+    <!-- Label: BEH -->
+    <text x="162" y="120" font-family="monospace" font-size="10" fill="#d29922" font-weight="bold">BEH</text>
+  </g>
+
+  <!-- Shared body/neck -->
+  <path d="M 80 118 Q 90 140 100 150 L 128 170 L 156 150 Q 166 140 176 118"
+        fill="url(#bodyGradient)"
+        stroke="#30363d"
+        stroke-width="2"
+        opacity="0.8"/>
+
+  <!-- Center AI symbol (represents the unified AI core) -->
+  <g transform="translate(128, 175)">
+    <!-- Circuit/chip symbol -->
+    <rect x="-18" y="-18" width="36" height="36" rx="4" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+    <circle cx="0" cy="0" r="8" fill="url(#headGradient1)"/>
+    <!-- Circuit lines -->
+    <line x1="-18" y1="-6" x2="-25" y2="-6" stroke="#58a6ff" stroke-width="2"/>
+    <line x1="18" y1="-6" x2="25" y2="-6" stroke="#58a6ff" stroke-width="2"/>
+    <line x1="-6" y1="-18" x2="-6" y2="-25" stroke="#58a6ff" stroke-width="2"/>
+    <line x1="-6" y1="18" x2="-6" y2="25" stroke="#58a6ff" stroke-width="2"/>
+    <!-- AI text -->
+    <text x="-8" y="5" font-family="sans-serif" font-size="12" fill="#fff" font-weight="bold">AI</text>
+  </g>
+
+  <!-- Warning symbols around the heads (detection alerts) -->
+  <circle cx="50" cy="70" r="4" fill="#f85149" opacity="0.7"/>
+  <circle cx="128" cy="55" r="4" fill="#f85149" opacity="0.7"/>
+  <circle cx="206" cy="70" r="4" fill="#f85149" opacity="0.7"/>
+
+  <!-- Bottom banner with app name -->
+  <path d="M 60 210 L 196 210 L 190 230 L 66 230 Z" fill="#21262d" opacity="0.8"/>
+  <text x="72" y="225" font-family="sans-serif" font-size="16" fill="#58a6ff" font-weight="bold">CERBERUS</text>
+</svg>
