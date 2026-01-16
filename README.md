@@ -13,8 +13,6 @@
 
 **AI-Cerberus** is an enterprise-grade malware analysis platform featuring multi-layered threat detection powered by artificial intelligence. Like the mythological three-headed guardian dog, it employs three independent detection engines to ensure no threat escapes.
 
-<img width="1345" height="692" alt="image" src="https://github.com/user-attachments/assets/3f29fc0c-ee99-438c-bebc-feb4a6961115" />
-
 ---
 
 ## Table of Contents
