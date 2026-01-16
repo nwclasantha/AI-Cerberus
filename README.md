@@ -13,20 +13,7 @@
 
 **AI-Cerberus** is an enterprise-grade malware analysis platform featuring multi-layered threat detection powered by artificial intelligence. Like the mythological three-headed guardian dog, it employs three independent detection engines to ensure no threat escapes.
 
-```
-     ╔═══════════════════════════════════════════════════════════════╗
-     ║                                                               ║
-     ║     ██████╗███████╗██████╗ ██████╗ ███████╗██████╗ ██╗   ██╗  ║
-     ║    ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██║   ██║  ║
-     ║    ██║     █████╗  ██████╔╝██████╔╝█████╗  ██████╔╝██║   ██║  ║
-     ║    ██║     ██╔══╝  ██╔══██╗██╔══██╗██╔══╝  ██╔══██╗██║   ██║  ║
-     ║    ╚██████╗███████╗██║  ██║██████╔╝███████╗██║  ██║╚██████╔╝  ║
-     ║     ╚═════╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝   ║
-     ║                                                               ║
-     ║              AI-Powered Malware Analysis Platform             ║
-     ║                                                               ║
-     ╚═══════════════════════════════════════════════════════════════╝
-```
+<img width="1345" height="692" alt="image" src="https://github.com/user-attachments/assets/3f29fc0c-ee99-438c-bebc-feb4a6961115" />
 
 ---
 
@@ -50,6 +37,8 @@
 
 ## Features
 
+<img width="1386" height="682" alt="image" src="https://github.com/user-attachments/assets/0f9e3d78-101a-47d0-bcb6-379978c67042" />
+
 ### Three Detection Heads
 
 | Head | Engine | Color | Description |
@@ -59,6 +48,8 @@
 | **BEH** | Behavioral Analysis | Orange | Runtime behavior profiling & API analysis |
 
 ### Core Capabilities
+
+<img width="1356" height="691" alt="image" src="https://github.com/user-attachments/assets/2a388118-c961-4512-924b-861cffd7acd2" />
 
 - **Multi-Format Binary Analysis** - PE, ELF, Mach-O support
 - **Advanced Disassembly** - x86, x64, ARM with suspicious code highlighting
@@ -92,6 +83,8 @@
 ---
 
 ## Architecture Overview
+
+<img width="1371" height="646" alt="image" src="https://github.com/user-attachments/assets/4dbac0de-c5c9-4326-b08a-a2af917d4998" />
 
 ### High-Level Architecture
 
@@ -173,6 +166,8 @@
 ---
 
 ## System Architecture
+
+<img width="1390" height="672" alt="image" src="https://github.com/user-attachments/assets/1d0483c6-d583-4a3d-8f96-680538f53060" />
 
 ### Directory Structure
 
@@ -307,6 +302,8 @@ MalwareAnalyzer/
 
 #### PE Analyzer (`pe_analyzer.py`)
 
+<img width="1363" height="683" alt="image" src="https://github.com/user-attachments/assets/ba7cce23-4670-4ff7-a364-4a1b78f0f29b" />
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        PE FILE ANALYSIS                              │
@@ -390,6 +387,8 @@ MalwareAnalyzer/
 ```
 
 #### Disassembler (`disassembler.py`)
+
+<img width="1387" height="706" alt="image" src="https://github.com/user-attachments/assets/ab8b52bd-522f-4d4f-850a-5b14e357c8f2" />
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
