@@ -1,7 +1,5 @@
 # AI-Cerberus
 
-<img width="2752" height="1536" alt="unnamed" src="https://github.com/user-attachments/assets/9f26b5e8-0492-41d1-a528-5f27bbf5c6f4" />
-
 ## The Three-Headed Guardian Against Malicious Code
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
