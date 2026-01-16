@@ -1108,8 +1108,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 - **Project**: AI-Cerberus
-- **Author**: Your Name
-- **Email**: your.email@example.com
+- **Author**: NW Chanaka Lasantha
 - **GitHub**: [github.com/yourusername/ai-cerberus](https://github.com/yourusername/ai-cerberus)
 
 ---
