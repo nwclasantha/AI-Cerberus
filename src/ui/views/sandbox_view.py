@@ -4,6 +4,8 @@ Sandbox Integration view.
 Configure and manage sandbox analysis (VMware Custom Sandbox).
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from pathlib import Path
 from PyQt6.QtWidgets import (

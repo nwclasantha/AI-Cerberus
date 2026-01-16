@@ -9,6 +9,8 @@ Provides stunning non-intrusive notifications with:
 - Box shadows for depth
 """
 
+from __future__ import annotations
+
 from typing import Optional, List
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QHBoxLayout, QVBoxLayout, QPushButton,

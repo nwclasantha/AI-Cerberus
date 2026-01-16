@@ -4,6 +4,8 @@ Main toolbar component.
 Provides quick access to common actions and file operations.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from PyQt6.QtWidgets import (
     QToolBar, QWidget, QLineEdit, QToolButton, QMenu,

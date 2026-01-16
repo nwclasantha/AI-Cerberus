@@ -4,6 +4,8 @@ Base plugin interface.
 Defines the contract for all plugins in the system.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path

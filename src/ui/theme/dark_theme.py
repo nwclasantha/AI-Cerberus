@@ -5,6 +5,8 @@ Provides a comprehensive dark theme inspired by modern IDEs
 and analysis tools like Ghidra and IDA Pro.
 """
 
+from __future__ import annotations
+
 from .colors import Colors, ColorPalette
 
 

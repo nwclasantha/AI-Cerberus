@@ -7,6 +7,8 @@ Comprehensive analysis of ELF files including:
 - Dynamic linking info
 """
 
+from __future__ import annotations
+
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path

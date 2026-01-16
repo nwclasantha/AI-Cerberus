@@ -4,8 +4,11 @@ Main application window.
 Central controller for the entire UI.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, TYPE_CHECKING
+
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QFileDialog, QMessageBox, QSplitter, QDialog,
@@ -639,86 +642,102 @@ class MainWindow(QMainWindow):
         if not folder:
             return
 
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton
-        from PyQt6.QtCore import QThread
+        from PyQt6.QtWidgets import (
+            QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+            QPushButton, QCheckBox, QSpinBox
+        )
 
-        # Get all files in folder
-        folder_path = Path(folder)
-        all_files = []
-        for ext in ['*.*']:
-            all_files.extend(list(folder_path.rglob(ext)))
+        folder_path = Path(folder).resolve()
 
-        # Filter to likely binary files
-        files_to_analyze = [
-            f for f in all_files
-            if f.is_file() and f.stat().st_size > 0 and f.stat().st_size < 100 * 1024 * 1024
-        ]
-
-        if not files_to_analyze:
-            self._toast.warning(f"No files found in {folder}")
-            return
-
-        # Show batch analysis dialog
+        # Show options dialog
         dialog = QDialog(self)
-        dialog.setWindowTitle(f"Batch Analysis - {len(files_to_analyze)} files")
-        dialog.setMinimumWidth(500)
+        dialog.setWindowTitle("Batch Analysis Options")
+        dialog.setMinimumWidth(400)
         layout = QVBoxLayout(dialog)
 
-        status_label = QLabel(f"Found {len(files_to_analyze)} files to analyze")
+        # Recursive option
+        recursive_check = QCheckBox("Include subdirectories (recursive)")
+        recursive_check.setChecked(False)
+        layout.addWidget(recursive_check)
+
+        # File limit
+        limit_layout = QHBoxLayout()
+        limit_layout.addWidget(QLabel("Maximum files:"))
+        limit_spin = QSpinBox()
+        limit_spin.setRange(1, 10000)
+        limit_spin.setValue(100)
+        limit_layout.addWidget(limit_spin)
+        limit_layout.addStretch()
+        layout.addLayout(limit_layout)
+
+        # Status label (updated when options change)
+        status_label = QLabel("Counting files...")
         layout.addWidget(status_label)
 
-        progress = QProgressBar()
-        progress.setRange(0, len(files_to_analyze))
-        layout.addWidget(progress)
+        def update_file_count() -> None:
+            """Update the file count based on current options."""
+            try:
+                pattern = "**/*" if recursive_check.isChecked() else "*"
+                max_files = limit_spin.value()
+                count = 0
+                for f in folder_path.glob(pattern):
+                    if f.is_file():
+                        try:
+                            size = f.stat().st_size
+                            if 0 < size < 100 * 1024 * 1024:
+                                count += 1
+                                if count >= max_files:
+                                    break
+                        except OSError:
+                            continue
+                status_label.setText(f"Found {count} files to analyze")
+            except Exception as e:
+                status_label.setText(f"Error scanning folder: {e}")
 
-        current_file_label = QLabel("")
-        layout.addWidget(current_file_label)
+        recursive_check.stateChanged.connect(lambda: update_file_count())
+        limit_spin.valueChanged.connect(lambda: update_file_count())
 
+        # Initial count
+        QTimer.singleShot(100, update_file_count)
+
+        # Buttons
+        button_layout = QHBoxLayout()
         start_btn = QPushButton("Start Analysis")
-        layout.addWidget(start_btn)
+        cancel_btn = QPushButton("Cancel")
+        button_layout.addStretch()
+        button_layout.addWidget(start_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
 
-        results_list = []
+        cancel_btn.clicked.connect(dialog.reject)
 
-        def analyze_batch():
-            start_btn.setEnabled(False)
-            for i, file_path in enumerate(files_to_analyze):
-                current_file_label.setText(f"Analyzing: {file_path.name}")
-                progress.setValue(i)
+        def start_analysis() -> None:
+            """Collect files and start batch analysis."""
+            dialog.accept()
 
-                try:
-                    # Quick analysis
-                    hash_calc = HashCalculator()
-                    hashes = hash_calc.analyze(file_path)
+            pattern = "**/*" if recursive_check.isChecked() else "*"
+            max_files = limit_spin.value()
 
-                    yara = YaraEngine()
-                    matches = yara.analyze(file_path)
+            files_to_analyze: List[Path] = []
+            for f in folder_path.glob(pattern):
+                if f.is_file():
+                    try:
+                        size = f.stat().st_size
+                        if 0 < size < 100 * 1024 * 1024:
+                            files_to_analyze.append(f)
+                            if len(files_to_analyze) >= max_files:
+                                break
+                    except OSError:
+                        continue
 
-                    results_list.append({
-                        'file': str(file_path),
-                        'hash': hashes.sha256,
-                        'matches': len(matches),
-                        'status': 'completed'
-                    })
-                except Exception as e:
-                    results_list.append({
-                        'file': str(file_path),
-                        'status': 'error',
-                        'error': str(e)
-                    })
+            if not files_to_analyze:
+                self._toast.warning(f"No valid files found in {folder}")
+                return
 
-                dialog.update()
+            # Use the non-blocking batch analysis system
+            self._batch_analyze_files(files_to_analyze)
 
-            progress.setValue(len(files_to_analyze))
-            current_file_label.setText(f"Complete! Analyzed {len(results_list)} files")
-            start_btn.setText("Close")
-            start_btn.setEnabled(True)
-            start_btn.clicked.disconnect()
-            start_btn.clicked.connect(dialog.accept)
-
-            # Export results
-            self._export_batch_results(results_list, folder_path)
-
-        start_btn.clicked.connect(analyze_batch)
+        start_btn.clicked.connect(start_analysis)
         dialog.exec()
 
     def _open_file_path(self, file_path: str) -> None:
@@ -777,14 +796,14 @@ class MainWindow(QMainWindow):
     def _export_batch_results(self, results: list, folder_path: Path) -> None:
         """Export batch analysis results."""
         import json
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         output_file = folder_path / f"batch_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
         try:
             with open(output_file, 'w') as f:
                 json.dump({
-                    'analysis_date': datetime.now().isoformat(),
+                    'analysis_date': datetime.now(timezone.utc).isoformat(),
                     'folder': str(folder_path),
                     'total_files': len(results),
                     'results': results
@@ -1152,44 +1171,50 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(button_layout)
 
-        def save_settings():
+        def save_settings() -> None:
             """Save settings to config file."""
-            import yaml
+            try:
+                import yaml
 
-            config_file = Path("config.yaml")
-            if config_file.exists():
-                with open(config_file, 'r') as f:
-                    config_data = yaml.safe_load(f) or {}
-            else:
-                config_data = {}
+                config_file = Path("config.yaml").resolve()
 
-            # Update values
-            if 'ui' not in config_data:
-                config_data['ui'] = {}
-            config_data['ui']['theme'] = theme_combo.currentText()
-            config_data['ui']['font_size'] = font_size_spin.value()
+                # Read existing config if it exists
+                config_data: Dict[str, Any] = {}
+                if config_file.exists():
+                    try:
+                        with open(config_file, 'r', encoding='utf-8') as f:
+                            config_data = yaml.safe_load(f) or {}
+                    except (yaml.YAMLError, OSError) as e:
+                        logger.warning(f"Failed to read config file, starting fresh: {e}")
+                        config_data = {}
 
-            if 'analysis' not in config_data:
-                config_data['analysis'] = {}
-            config_data['analysis']['max_file_size'] = max_size_spin.value() * 1024 * 1024
-            config_data['analysis']['timeout'] = timeout_spin.value()
+                # Update values with proper nesting
+                config_data.setdefault('ui', {})
+                config_data['ui']['theme'] = theme_combo.currentText()
+                config_data['ui']['font_size'] = font_size_spin.value()
 
-            if 'ml' not in config_data:
-                config_data['ml'] = {}
-            config_data['ml']['confidence_threshold'] = confidence_spin.value() / 100.0
+                config_data.setdefault('analysis', {})
+                config_data['analysis']['max_file_size'] = max_size_spin.value() * 1024 * 1024
+                config_data['analysis']['timeout'] = timeout_spin.value()
 
-            if 'integrations' not in config_data:
-                config_data['integrations'] = {}
-            if 'virustotal' not in config_data['integrations']:
-                config_data['integrations']['virustotal'] = {}
-            config_data['integrations']['virustotal']['enabled'] = vt_enabled.isChecked()
-            config_data['integrations']['virustotal']['api_key'] = vt_api_key.text()
+                config_data.setdefault('ml', {})
+                config_data['ml']['confidence_threshold'] = confidence_spin.value() / 100.0
 
-            # Write config
-            with open(config_file, 'w') as f:
-                yaml.dump(config_data, f, default_flow_style=False)
+                config_data.setdefault('integrations', {})
+                config_data['integrations'].setdefault('virustotal', {})
+                config_data['integrations']['virustotal']['enabled'] = vt_enabled.isChecked()
+                config_data['integrations']['virustotal']['api_key'] = vt_api_key.text()
 
-            self._toast.success("Settings saved! Restart app to apply some changes.")
+                # Write config with explicit encoding
+                with open(config_file, 'w', encoding='utf-8') as f:
+                    yaml.dump(config_data, f, default_flow_style=False, allow_unicode=True)
+
+                self._toast.success("Settings saved! Restart app to apply some changes.")
+                logger.info("Settings saved successfully")
+
+            except Exception as e:
+                logger.error(f"Failed to save settings: {e}")
+                self._toast.error(f"Failed to save settings: {e}")
 
         save_btn.clicked.connect(lambda: (save_settings(), dialog.accept()))
         apply_btn.clicked.connect(save_settings)
@@ -1520,11 +1545,23 @@ class MainWindow(QMainWindow):
                     # Check if symlink points to sensitive system location
                     if file_path.is_symlink():
                         real_path = file_path.resolve()
-                        # Block symlinks to system directories
-                        system_paths = ['/etc', '/sys', '/proc', 'C:\\Windows', 'C:\\Program Files']
-                        if any(str(real_path).startswith(sp) for sp in system_paths):
+                        real_path_str = str(real_path).lower()  # Case-insensitive for Windows
+
+                        # Block symlinks to system directories (platform-aware)
+                        import platform
+                        if platform.system() == "Windows":
+                            system_paths = [
+                                'c:\\windows',
+                                'c:\\program files',
+                                'c:\\program files (x86)',
+                                'c:\\programdata',
+                            ]
+                        else:
+                            system_paths = ['/etc', '/sys', '/proc', '/boot', '/root']
+
+                        if any(real_path_str.startswith(sp.lower()) for sp in system_paths):
                             logger.error(f"Security: Blocked symlink to system path: {real_path}")
-                            self._toast.error(f"Security: Cannot analyze system files")
+                            self._toast.error("Security: Cannot analyze system files")
                             continue
 
                     files.append(file_path)

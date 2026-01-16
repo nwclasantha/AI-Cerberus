@@ -4,9 +4,11 @@ Application initialization and configuration.
 Sets up PyQt6 application with theming and global settings.
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, QCoreApplication
@@ -15,6 +17,10 @@ from PyQt6.QtGui import QFont, QIcon
 from .theme import get_theme_manager
 from ..utils.config import get_config
 from ..utils.logger import get_logger
+
+if TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Type
 
 logger = get_logger("app")
 
@@ -35,7 +41,7 @@ class MalwareAnalyzerApp(QApplication):
     ORG_NAME = "AI-Cerberus"
     ORG_DOMAIN = "ai-cerberus.local"
 
-    def __init__(self, argv: list = None):
+    def __init__(self, argv: Optional[List[str]] = None) -> None:
         """
         Initialize application.
 
@@ -72,10 +78,17 @@ class MalwareAnalyzerApp(QApplication):
         # Set default font
         font_family = self._config.get("ui.font_family", "Segoe UI")
         font_size = self._config.get("ui.font_size", 13)
+
+        # Validate font size
+        if not isinstance(font_size, int) or font_size < 8:
+            font_size = 13
+        elif font_size > 24:
+            font_size = 24
+
         self.setFont(QFont(font_family, font_size))
 
         # Set application icon (.ico for Windows, multi-resolution)
-        icon_path = Path(__file__).parent.parent.parent / "resources" / "icons" / "cerberus.ico"
+        icon_path = Path(__file__).resolve().parent.parent.parent / "resources" / "icons" / "cerberus.ico"
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
             logger.info(f"Application icon loaded: {icon_path}")
@@ -84,23 +97,52 @@ class MalwareAnalyzerApp(QApplication):
 
     def _setup_exception_handling(self) -> None:
         """Set up global exception handling."""
-        def exception_hook(exc_type, exc_value, exc_tb):
+        # Store original excepthook
+        self._original_excepthook = sys.excepthook
+
+        def exception_hook(
+            exc_type: Type[BaseException],
+            exc_value: BaseException,
+            exc_tb: Optional[TracebackType],
+        ) -> None:
+            """Handle uncaught exceptions."""
+            # Don't log KeyboardInterrupt as critical
+            if issubclass(exc_type, KeyboardInterrupt):
+                logger.info("Application interrupted by user")
+                sys.exit(0)
+                return
+
+            # Don't log SystemExit as critical
+            if issubclass(exc_type, SystemExit):
+                sys.exit(exc_value.code if hasattr(exc_value, 'code') else 0)
+                return
+
             logger.critical(
                 "Unhandled exception",
                 exc_info=(exc_type, exc_value, exc_tb),
             )
-            # Call default handler
-            sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+            # Call original handler
+            if self._original_excepthook is not None:
+                self._original_excepthook(exc_type, exc_value, exc_tb)
 
         sys.excepthook = exception_hook
 
     @classmethod
-    def get_instance(cls) -> Optional["MalwareAnalyzerApp"]:
-        """Get the application instance."""
-        return QCoreApplication.instance()
+    def get_instance(cls) -> Optional[MalwareAnalyzerApp]:
+        """
+        Get the application instance.
+
+        Returns:
+            The current application instance, or None if not running.
+        """
+        instance = QCoreApplication.instance()
+        if isinstance(instance, MalwareAnalyzerApp):
+            return instance
+        return None
 
 
-def create_application(argv: list = None) -> MalwareAnalyzerApp:
+def create_application(argv: Optional[List[str]] = None) -> MalwareAnalyzerApp:
     """
     Create and configure the application.
 
@@ -111,8 +153,12 @@ def create_application(argv: list = None) -> MalwareAnalyzerApp:
         Configured MalwareAnalyzerApp instance
     """
     # Must set High DPI policy BEFORE creating QApplication
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+    try:
+        QApplication.setHighDpiScaleFactorRoundingPolicy(
+            Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+        )
+    except AttributeError:
+        # Older PyQt6 versions may not have this
+        logger.debug("High DPI scale factor policy not available")
 
     return MalwareAnalyzerApp(argv)

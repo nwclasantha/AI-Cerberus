@@ -4,6 +4,8 @@ Machine Learning Classification Settings view.
 Configure ML models and classification parameters.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from pathlib import Path
 from PyQt6.QtWidgets import (

@@ -4,7 +4,11 @@ Theme manager for the Malware Analysis Platform.
 Handles theme switching, persistence, and dynamic updates.
 """
 
-from typing import Optional
+from __future__ import annotations
+
+import threading
+from typing import Dict, Optional
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor, QFont
 
@@ -25,24 +29,30 @@ class ThemeManager:
     - Runtime theme switching
     - Persistent theme preferences
     - Custom font management
+
+    Thread-safe singleton implementation.
     """
 
-    _instance: Optional["ThemeManager"] = None
+    _instance: Optional[ThemeManager] = None
+    _lock: threading.Lock = threading.Lock()
 
-    THEMES = {
+    THEMES: Dict[str, ColorPalette] = {
         "dark": Colors.DARK,
         "darker": Colors.DARKER,
         "light": Colors.LIGHT,
     }
 
-    def __new__(cls) -> "ThemeManager":
-        """Singleton pattern."""
+    def __new__(cls) -> ThemeManager:
+        """Thread-safe singleton pattern."""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialized = False
+            with cls._lock:
+                if cls._instance is None:
+                    instance = super().__new__(cls)
+                    instance._initialized = False
+                    cls._instance = instance
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize theme manager."""
         if self._initialized:
             return

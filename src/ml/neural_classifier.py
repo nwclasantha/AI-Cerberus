@@ -4,6 +4,8 @@ Neural network classifier for malware detection.
 Implements deep learning-based classification using TensorFlow/Keras.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
@@ -349,7 +351,7 @@ class NeuralClassifier:
                 "is_trained": self._is_trained,
             }
             meta_path = self._model_dir / "neural_network_meta.json"
-            with open(meta_path, "w") as f:
+            with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2)
 
             logger.info(f"Neural network model saved to {model_path}")
@@ -369,7 +371,7 @@ class NeuralClassifier:
                 return
 
             # Load metadata
-            with open(meta_path, "r") as f:
+            with open(meta_path, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
 
             # Check version compatibility

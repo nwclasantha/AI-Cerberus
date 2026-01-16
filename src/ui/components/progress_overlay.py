@@ -4,6 +4,8 @@ Progress overlay component.
 Provides a loading overlay with progress indication.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,

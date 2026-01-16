@@ -4,6 +4,8 @@ Disassembly view component.
 Displays disassembled instructions with syntax highlighting.
 """
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,

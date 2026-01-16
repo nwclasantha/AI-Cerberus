@@ -4,6 +4,8 @@ YARA Rules Manager view.
 Allows users to manage, edit, and test YARA rules.
 """
 
+from __future__ import annotations
+
 from typing import Optional, List
 from pathlib import Path
 from PyQt6.QtWidgets import (

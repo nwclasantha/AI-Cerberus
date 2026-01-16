@@ -7,10 +7,12 @@ Provides comprehensive YARA scanning with:
 - Match result formatting
 """
 
+from __future__ import annotations
+
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from .base_analyzer import BaseAnalyzer
 from ..utils.logger import get_logger
@@ -28,10 +30,10 @@ class YaraMatch:
     description: str = ""
     severity: str = "medium"
     tags: List[str] = field(default_factory=list)
-    strings: List[tuple] = field(default_factory=list)
+    strings: List[Tuple[int, str, str]] = field(default_factory=list)
     meta: Dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "rule": self.rule,
             "namespace": self.namespace,
@@ -39,7 +41,7 @@ class YaraMatch:
             "severity": self.severity,
             "tags": self.tags,
             "strings": [
-                {"offset": s[0], "identifier": s[1], "data": s[2][:100]}
+                {"offset": s[0], "identifier": s[1], "data": str(s[2])[:100]}
                 for s in self.strings[:20]
             ],
             "meta": self.meta,
@@ -65,20 +67,77 @@ class YaraEngine(BaseAnalyzer):
     def supported_formats(self) -> list:
         return ["*"]
 
-    def __init__(self, timeout: int = 60):
+    def __init__(self, timeout: int = 60, rules_dir: Optional[Path] = None):
         """
         Initialize YARA engine.
 
         Args:
             timeout: Scan timeout in seconds
+            rules_dir: Directory containing .yar rule files (default: resources/yara_rules)
         """
         super().__init__()
         self.timeout = timeout
         self._rules = None
-        self._compile_builtin_rules()
+        self._rules_dir = rules_dir
+        self._rule_count = 0
+        self._compile_all_rules()
+
+    def _compile_all_rules(self) -> None:
+        """Compile all YARA rules from built-in and rule files."""
+        try:
+            import yara
+
+            # Find rules directory
+            if self._rules_dir:
+                rules_dir = self._rules_dir
+            else:
+                # Default: resources/yara_rules relative to project root
+                project_root = Path(__file__).parent.parent.parent
+                rules_dir = project_root / "resources" / "yara_rules"
+
+            # Collect all rule sources
+            rule_sources: Dict[str, str] = {}
+
+            # Add built-in rules
+            rule_sources["builtin"] = self._get_builtin_rules()
+
+            # Load all .yar and .yara files from directory
+            if rules_dir.exists():
+                for rule_file in rules_dir.glob("*.yar"):
+                    try:
+                        content = rule_file.read_text(encoding="utf-8")
+                        namespace = rule_file.stem
+                        rule_sources[namespace] = content
+                        logger.debug(f"Loaded rule file: {rule_file.name}")
+                    except Exception as e:
+                        logger.warning(f"Failed to load {rule_file.name}: {e}")
+
+                for rule_file in rules_dir.glob("*.yara"):
+                    try:
+                        content = rule_file.read_text(encoding="utf-8")
+                        namespace = rule_file.stem
+                        rule_sources[namespace] = content
+                        logger.debug(f"Loaded rule file: {rule_file.name}")
+                    except Exception as e:
+                        logger.warning(f"Failed to load {rule_file.name}: {e}")
+
+            # Compile all rules together
+            if rule_sources:
+                self._rules = yara.compile(sources=rule_sources)
+                self._rule_count = len(rule_sources)
+                logger.info(f"YARA rules compiled: {self._rule_count} rule files loaded")
+            else:
+                logger.warning("No YARA rules found")
+
+        except ImportError:
+            logger.warning("yara-python not installed")
+        except yara.SyntaxError as e:
+            logger.error(f"YARA rule syntax error: {e}")
+        except Exception as e:
+            logger.error(f"Failed to compile YARA rules: {e}")
 
     def _compile_builtin_rules(self) -> None:
-        """Compile built-in YARA rules."""
+        """Compile built-in YARA rules only (legacy method)."""
         try:
             import yara
 
@@ -92,6 +151,72 @@ class YaraEngine(BaseAnalyzer):
             logger.error(f"YARA rule syntax error: {e}")
         except Exception as e:
             logger.error(f"Failed to compile YARA rules: {e}")
+
+    def get_rule_count(self) -> int:
+        """Get the number of loaded rule files."""
+        return self._rule_count
+
+    def reload_rules(self) -> bool:
+        """Reload all YARA rules from disk."""
+        try:
+            self._compile_all_rules()
+            return self._rules is not None
+        except Exception as e:
+            logger.error(f"Failed to reload rules: {e}")
+            return False
+
+    def add_rules_directory(self, directory: Path) -> int:
+        """
+        Add rules from an additional directory.
+
+        Args:
+            directory: Path to directory containing .yar files
+
+        Returns:
+            Number of rule files loaded
+        """
+        if not directory.exists():
+            logger.error(f"Rules directory not found: {directory}")
+            return 0
+
+        try:
+            import yara
+
+            count = 0
+            rule_sources: Dict[str, str] = {}
+
+            # Load existing rules
+            rule_sources["_current"] = self._get_builtin_rules()
+
+            # Load from new directory
+            for rule_file in directory.glob("*.yar"):
+                try:
+                    content = rule_file.read_text(encoding="utf-8")
+                    namespace = f"{directory.name}_{rule_file.stem}"
+                    rule_sources[namespace] = content
+                    count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to load {rule_file}: {e}")
+
+            for rule_file in directory.glob("*.yara"):
+                try:
+                    content = rule_file.read_text(encoding="utf-8")
+                    namespace = f"{directory.name}_{rule_file.stem}"
+                    rule_sources[namespace] = content
+                    count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to load {rule_file}: {e}")
+
+            if count > 0:
+                self._rules = yara.compile(sources=rule_sources)
+                self._rule_count += count
+                logger.info(f"Added {count} rule files from {directory}")
+
+            return count
+
+        except Exception as e:
+            logger.error(f"Failed to add rules directory: {e}")
+            return 0
 
     def analyze(
         self,

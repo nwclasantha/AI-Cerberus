@@ -5,7 +5,9 @@ This module defines a hierarchy of exceptions used throughout the application
 for proper error handling and reporting.
 """
 
-from typing import Optional, Any
+from __future__ import annotations
+
+from typing import Optional
 
 
 class MalwareAnalyzerError(Exception):

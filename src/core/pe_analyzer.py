@@ -8,12 +8,15 @@ Comprehensive analysis of PE files including:
 - Digital signature verification
 """
 
+from __future__ import annotations
+
+import hashlib
 import struct
-from dataclasses import dataclass, field
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from .base_analyzer import BaseAnalyzer
 from .entropy_analyzer import EntropyAnalyzer
@@ -254,10 +257,13 @@ class PEAnalyzer(BaseAnalyzer):
 
             # Timestamp
             try:
-                result.timestamp = datetime.fromtimestamp(
-                    pe.FILE_HEADER.TimeDateStamp
-                )
-            except (OSError, ValueError):
+                ts = pe.FILE_HEADER.TimeDateStamp
+                # Validate timestamp range (1970 to 2100)
+                if 0 < ts < 4102444800:
+                    result.timestamp = datetime.fromtimestamp(ts, tz=timezone.utc)
+                else:
+                    result.anomalies.append(f"Suspicious timestamp value: {ts}")
+            except (OSError, ValueError, OverflowError):
                 result.anomalies.append("Invalid timestamp")
 
             # Entry point and image base
@@ -323,8 +329,6 @@ class PEAnalyzer(BaseAnalyzer):
 
     def _analyze_sections(self, pe, data: bytes) -> List[PESection]:
         """Analyze PE sections."""
-        import hashlib
-
         sections = []
 
         for section in pe.sections:
@@ -342,8 +346,8 @@ class PEAnalyzer(BaseAnalyzer):
             else:
                 entropy = 0.0
 
-            # Calculate MD5
-            md5 = hashlib.md5(sec_data).hexdigest() if sec_data else ""
+            # Calculate MD5 (usedforsecurity=False for FIPS compliance)
+            md5 = hashlib.md5(sec_data, usedforsecurity=False).hexdigest() if sec_data else ""
 
             sections.append(PESection(
                 name=name,

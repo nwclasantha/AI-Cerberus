@@ -7,12 +7,15 @@ Implements ensemble classification using:
 - Optional Neural Network
 """
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
 import json
 import pickle
 import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 
 from .feature_extractor import FeatureExtractor, FeatureVector
@@ -503,7 +506,7 @@ class MalwareClassifier:
                 "feature_count": len(FeatureVector.feature_names()),
             }
             meta_path = self._model_dir / "metadata.json"
-            with open(meta_path, "w") as f:
+            with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2)
 
             logger.info(f"Models saved to {self._model_dir}")
@@ -517,7 +520,7 @@ class MalwareClassifier:
             # Check version compatibility first
             meta_path = self._model_dir / "metadata.json"
             if meta_path.exists():
-                with open(meta_path, "r") as f:
+                with open(meta_path, "r", encoding="utf-8") as f:
                     metadata = json.load(f)
 
                 saved_version = metadata.get("version", "0.0.0")

@@ -5,12 +5,14 @@ Calculates Shannon entropy for overall file and block-level
 analysis to identify suspicious high-entropy regions.
 """
 
+from __future__ import annotations
+
 import math
+import time
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from .base_analyzer import BaseAnalyzer
 from ..utils.logger import get_logger
@@ -27,7 +29,7 @@ class EntropyBlock:
     entropy: float
     is_suspicious: bool = False
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "offset": self.offset,
             "size": self.size,
@@ -53,7 +55,7 @@ class EntropyResult:
     mean_block_entropy: float = 0.0
     std_block_entropy: float = 0.0
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "overall": round(self.overall, 4),
             "raw": round(self.raw, 4),

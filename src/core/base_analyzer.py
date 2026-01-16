@@ -5,12 +5,15 @@ Defines the interface that all analyzers must implement
 and common result types used throughout the application.
 """
 
+from __future__ import annotations
+
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import os
+
 import magic
 
 from ..utils.exceptions import AnalysisError, FileFormatError, FileTooLargeError
@@ -34,7 +37,7 @@ class FileInfo:
     accessed: Optional[datetime] = None
 
     @classmethod
-    def from_path(cls, file_path: Path) -> "FileInfo":
+    def from_path(cls, file_path: Path) -> FileInfo:
         """Create FileInfo from file path."""
         stats = file_path.stat()
 
@@ -51,9 +54,9 @@ class FileInfo:
             file_size=stats.st_size,
             file_type=file_type,
             mime_type=mime_type,
-            created=datetime.fromtimestamp(stats.st_ctime),
-            modified=datetime.fromtimestamp(stats.st_mtime),
-            accessed=datetime.fromtimestamp(stats.st_atime),
+            created=datetime.fromtimestamp(stats.st_ctime, tz=timezone.utc),
+            modified=datetime.fromtimestamp(stats.st_mtime, tz=timezone.utc),
+            accessed=datetime.fromtimestamp(stats.st_atime, tz=timezone.utc),
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -105,12 +108,17 @@ class ThreatScore:
         }
 
 
+def _utcnow() -> datetime:
+    """Get current UTC time with timezone info."""
+    return datetime.now(timezone.utc)
+
+
 @dataclass
 class AnalysisResult:
     """Complete analysis result container."""
 
     file_info: FileInfo
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=_utcnow)
     duration_seconds: float = 0.0
 
     # Analysis components (populated by analyzers)

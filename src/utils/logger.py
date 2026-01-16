@@ -8,13 +8,16 @@ Provides consistent, structured logging with support for:
 - Context injection
 """
 
+from __future__ import annotations
+
+import json
 import logging
 import sys
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
+import threading
+from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
-import json
+from pathlib import Path
+from typing import Any, Dict, MutableMapping, Optional, Tuple
 
 
 class StructuredFormatter(logging.Formatter):
@@ -22,8 +25,8 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
-        log_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+        log_data: Dict[str, Any] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -33,7 +36,7 @@ class StructuredFormatter(logging.Formatter):
         }
 
         # Add extra fields
-        if hasattr(record, "extra_data"):
+        if hasattr(record, "extra_data") and record.extra_data:
             log_data.update(record.extra_data)
 
         # Add exception info if present
@@ -46,7 +49,7 @@ class StructuredFormatter(logging.Formatter):
 class PrettyFormatter(logging.Formatter):
     """Colorized formatter for console output."""
 
-    COLORS = {
+    COLORS: Dict[str, str] = {
         "DEBUG": "\033[36m",      # Cyan
         "INFO": "\033[32m",       # Green
         "WARNING": "\033[33m",    # Yellow
@@ -55,6 +58,7 @@ class PrettyFormatter(logging.Formatter):
     }
     RESET = "\033[0m"
     BOLD = "\033[1m"
+    GREY = "\033[90m"
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record with colors."""
@@ -66,11 +70,15 @@ class PrettyFormatter(logging.Formatter):
         # Format level with padding
         level = f"{record.levelname:8}"
 
-        # Format logger name (shortened)
+        # Format logger name (shortened if too long)
         logger_name = record.name
         if len(logger_name) > 20:
             parts = logger_name.split(".")
-            logger_name = ".".join(p[0] for p in parts[:-1]) + "." + parts[-1]
+            if len(parts) > 1:
+                logger_name = ".".join(p[0] for p in parts[:-1]) + "." + parts[-1]
+            # If only one part and still too long, truncate
+            if len(logger_name) > 20:
+                logger_name = logger_name[:17] + "..."
 
         # Build message
         message = record.getMessage()
@@ -84,7 +92,7 @@ class PrettyFormatter(logging.Formatter):
         formatted = (
             f"{self.BOLD}[{timestamp}]{self.RESET} "
             f"{color}{level}{self.RESET} "
-            f"\033[90m{logger_name:20}\033[0m "
+            f"{self.GREY}{logger_name:20}{self.RESET} "
             f"{message}{extra}"
         )
 
@@ -98,33 +106,53 @@ class PrettyFormatter(logging.Formatter):
 class ContextLogger(logging.LoggerAdapter):
     """Logger adapter that injects context into all log messages."""
 
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple:
+    def process(
+        self, msg: str, kwargs: MutableMapping[str, Any]
+    ) -> Tuple[str, MutableMapping[str, Any]]:
         """Process log message and inject extra context."""
+        # Handle extra_data passed as direct kwarg (non-standard but used in codebase)
+        extra_data_direct = kwargs.pop("extra_data", None)
+
         extra = kwargs.get("extra", {})
+        if extra is None:
+            extra = {}
+
+        # Safely get adapter's extra context (could be None)
+        adapter_extra = self.extra if self.extra else {}
 
         # Merge adapter extra with call extra
-        combined_extra = {**self.extra, **extra}
+        combined_extra = {**adapter_extra, **extra}
+
+        # Add directly passed extra_data
+        if extra_data_direct:
+            combined_extra.update(extra_data_direct)
 
         # Store as extra_data for formatters
-        if "extra_data" not in kwargs:
-            kwargs["extra"] = {"extra_data": combined_extra}
-        else:
-            kwargs["extra"]["extra_data"].update(combined_extra)
+        kwargs["extra"] = {"extra_data": combined_extra}
 
         return msg, kwargs
 
 
 class LoggerManager:
-    """Manages logging configuration and logger instances."""
+    """
+    Manages logging configuration and logger instances.
 
-    _instance: Optional["LoggerManager"] = None
-    _loggers: Dict[str, logging.Logger] = {}
-    _initialized: bool = False
+    Thread-safe singleton implementation.
+    """
 
-    def __new__(cls) -> "LoggerManager":
-        """Singleton pattern."""
+    _instance: Optional[LoggerManager] = None
+    _lock: threading.Lock = threading.Lock()
+
+    def __new__(cls) -> LoggerManager:
+        """Thread-safe singleton pattern."""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                # Double-check locking pattern
+                if cls._instance is None:
+                    instance = super().__new__(cls)
+                    instance._loggers: Dict[str, logging.Logger] = {}
+                    instance._initialized: bool = False
+                    cls._instance = instance
         return cls._instance
 
     def setup(
@@ -148,39 +176,51 @@ class LoggerManager:
         if self._initialized:
             return
 
-        root_logger = logging.getLogger("malware_analyzer")
-        root_logger.setLevel(getattr(logging, level.upper()))
+        with self._lock:
+            # Double-check after acquiring lock
+            if self._initialized:
+                return
 
-        # Clear existing handlers
-        root_logger.handlers.clear()
+            root_logger = logging.getLogger("malware_analyzer")
 
-        # Console handler
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.DEBUG)
+            # Validate and set log level
+            log_level = getattr(logging, level.upper(), logging.INFO)
+            root_logger.setLevel(log_level)
 
-        if format_type == "json":
-            console_handler.setFormatter(StructuredFormatter())
-        else:
-            console_handler.setFormatter(PrettyFormatter())
+            # Clear existing handlers
+            root_logger.handlers.clear()
 
-        root_logger.addHandler(console_handler)
+            # Console handler
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(logging.DEBUG)
 
-        # File handler (always JSON for parsing)
-        if log_file:
-            log_path = Path(log_file)
-            log_path.parent.mkdir(parents=True, exist_ok=True)
+            if format_type == "json":
+                console_handler.setFormatter(StructuredFormatter())
+            else:
+                console_handler.setFormatter(PrettyFormatter())
 
-            file_handler = RotatingFileHandler(
-                log_path,
-                maxBytes=max_size_mb * 1024 * 1024,
-                backupCount=backup_count,
-                encoding="utf-8",
-            )
-            file_handler.setLevel(logging.DEBUG)
-            file_handler.setFormatter(StructuredFormatter())
-            root_logger.addHandler(file_handler)
+            root_logger.addHandler(console_handler)
 
-        self._initialized = True
+            # File handler (always JSON for parsing)
+            if log_file:
+                try:
+                    log_path = Path(log_file)
+                    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+                    file_handler = RotatingFileHandler(
+                        log_path,
+                        maxBytes=max_size_mb * 1024 * 1024,
+                        backupCount=backup_count,
+                        encoding="utf-8",
+                    )
+                    file_handler.setLevel(logging.DEBUG)
+                    file_handler.setFormatter(StructuredFormatter())
+                    root_logger.addHandler(file_handler)
+                except (OSError, PermissionError) as e:
+                    # Log to console if file handler fails
+                    root_logger.warning(f"Failed to create log file handler: {e}")
+
+            self._initialized = True
 
     def get_logger(
         self,
@@ -198,10 +238,27 @@ class LoggerManager:
             ContextLogger instance
         """
         if name not in self._loggers:
-            logger = logging.getLogger(f"malware_analyzer.{name}")
-            self._loggers[name] = logger
+            with self._lock:
+                # Double-check after acquiring lock
+                if name not in self._loggers:
+                    logger = logging.getLogger(f"malware_analyzer.{name}")
+                    self._loggers[name] = logger
 
         return ContextLogger(self._loggers[name], context or {})
+
+    def reset(self) -> None:
+        """
+        Reset the logger manager state.
+
+        Useful for testing or reconfiguration.
+        """
+        with self._lock:
+            self._initialized = False
+            self._loggers.clear()
+
+            # Clear handlers from root logger
+            root_logger = logging.getLogger("malware_analyzer")
+            root_logger.handlers.clear()
 
 
 # Global manager instance
@@ -239,3 +296,12 @@ def get_logger(
         ContextLogger instance
     """
     return _manager.get_logger(name, context)
+
+
+def reset_logging() -> None:
+    """
+    Reset the logging system.
+
+    Useful for testing or reconfiguration.
+    """
+    _manager.reset()

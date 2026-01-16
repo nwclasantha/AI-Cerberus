@@ -5,12 +5,17 @@ Provides a clean abstraction over SQLAlchemy sessions
 with transaction management and common query patterns.
 """
 
+from __future__ import annotations
+
+import threading
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Generator, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type, TypeVar
+
 from sqlalchemy import create_engine, func, or_, desc, text
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 
 from .models import (
     Base, Sample, Analysis, YaraMatch, StringEntry,
@@ -29,18 +34,23 @@ class Repository:
     Database repository with transaction management.
 
     Provides CRUD operations and common queries for all models.
+    Thread-safe singleton implementation.
     """
 
-    _instance: Optional["Repository"] = None
+    _instance: Optional[Repository] = None
+    _lock: threading.Lock = threading.Lock()
 
-    def __new__(cls, db_path: Optional[str] = None) -> "Repository":
-        """Singleton pattern for shared database connection."""
+    def __new__(cls, db_path: Optional[str] = None) -> Repository:
+        """Thread-safe singleton pattern for shared database connection."""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialized = False
+            with cls._lock:
+                if cls._instance is None:
+                    instance = super().__new__(cls)
+                    instance._initialized = False
+                    cls._instance = instance
         return cls._instance
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None) -> None:
         """
         Initialize repository with database connection.
 
@@ -50,30 +60,43 @@ class Repository:
         if self._initialized:
             return
 
-        if db_path is None:
-            db_path = str(Path.home() / ".malware_analyzer" / "analysis.db")
+        with self._lock:
+            if self._initialized:
+                return
 
-        # Ensure directory exists
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+            if db_path is None:
+                db_path = str(Path.home() / ".malware_analyzer" / "analysis.db")
 
-        self._db_path = db_path
-        self._engine = create_engine(
-            f"sqlite:///{db_path}",
-            echo=False,
-            pool_pre_ping=True,
-        )
+            # Ensure directory exists
+            try:
+                Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+            except (OSError, PermissionError) as e:
+                logger.error(f"Failed to create database directory: {e}")
+                raise DatabaseError(f"Cannot create database directory: {e}")
 
-        # Create tables
-        Base.metadata.create_all(self._engine)
+            self._db_path = db_path
+            self._engine = create_engine(
+                f"sqlite:///{db_path}",
+                echo=False,
+                pool_pre_ping=True,
+                connect_args={"check_same_thread": False},  # Allow multi-threaded access
+            )
 
-        # Create session factory
-        self._session_factory = sessionmaker(
-            bind=self._engine,
-            expire_on_commit=False,
-        )
+            # Create tables
+            try:
+                Base.metadata.create_all(self._engine)
+            except SQLAlchemyError as e:
+                logger.error(f"Failed to create database tables: {e}")
+                raise DatabaseError(f"Database initialization failed: {e}")
 
-        self._initialized = True
-        logger.info(f"Database initialized: {db_path}")
+            # Create session factory
+            self._session_factory = sessionmaker(
+                bind=self._engine,
+                expire_on_commit=False,
+            )
+
+            self._initialized = True
+            logger.info(f"Database initialized: {db_path}")
 
     @contextmanager
     def session(self) -> Generator[Session, None, None]:
@@ -89,10 +112,14 @@ class Repository:
         try:
             yield session
             session.commit()
-        except Exception as e:
+        except SQLAlchemyError as e:
             session.rollback()
             logger.error(f"Database error: {e}")
             raise DatabaseError(f"Database operation failed: {e}")
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Unexpected error in database session: {e}")
+            raise
         finally:
             session.close()
 
@@ -122,7 +149,7 @@ class Repository:
                 query = query.limit(limit)
             return list(query.all())
 
-    def create_sample(self, **kwargs) -> Sample:
+    def create_sample(self, **kwargs: Any) -> Sample:
         """Create a new sample record."""
         with self.session() as session:
             sample = Sample(**kwargs)
@@ -130,7 +157,7 @@ class Repository:
             session.flush()
             return sample
 
-    def update_sample(self, sha256: str, **kwargs) -> Optional[Sample]:
+    def update_sample(self, sha256: str, **kwargs: Any) -> Optional[Sample]:
         """Update sample by SHA256."""
         with self.session() as session:
             sample = session.query(Sample).filter(
@@ -139,11 +166,11 @@ class Repository:
             if sample:
                 for key, value in kwargs.items():
                     setattr(sample, key, value)
-                sample.last_analyzed = datetime.utcnow()
+                sample.last_analyzed = datetime.now(timezone.utc)
                 session.flush()
             return sample
 
-    def get_or_create_sample(self, sha256: str, **kwargs) -> tuple:
+    def get_or_create_sample(self, sha256: str, **kwargs: Any) -> Tuple[Sample, bool]:
         """
         Get existing sample or create new one.
 
@@ -207,27 +234,27 @@ class Repository:
                 desc(Sample.last_analyzed)
             ).limit(limit).all()
 
-    def get_sample_statistics(self) -> dict:
+    def get_sample_statistics(self) -> Dict[str, Any]:
         """Get overall sample statistics."""
         with self.session() as session:
-            total = session.query(func.count(Sample.id)).scalar()
+            total = session.query(func.count(Sample.id)).scalar() or 0
             malicious = session.query(func.count(Sample.id)).filter(
                 Sample.classification == "malicious"
-            ).scalar()
+            ).scalar() or 0
             suspicious = session.query(func.count(Sample.id)).filter(
                 Sample.classification == "suspicious"
-            ).scalar()
+            ).scalar() or 0
             benign = session.query(func.count(Sample.id)).filter(
                 Sample.classification == "benign"
-            ).scalar()
+            ).scalar() or 0
             avg_score = session.query(func.avg(Sample.threat_score)).scalar()
 
             return {
-                "total": total or 0,
-                "malicious": malicious or 0,
-                "suspicious": suspicious or 0,
-                "benign": benign or 0,
-                "unknown": (total or 0) - (malicious or 0) - (suspicious or 0) - (benign or 0),
+                "total": total,
+                "malicious": malicious,
+                "suspicious": suspicious,
+                "benign": benign,
+                "unknown": total - malicious - suspicious - benign,
                 "average_threat_score": round(avg_score or 0, 2),
             }
 
@@ -235,7 +262,7 @@ class Repository:
     # Analysis Operations
     # ==========================================================================
 
-    def create_analysis(self, sample_id: int, **kwargs) -> Analysis:
+    def create_analysis(self, sample_id: int, **kwargs: Any) -> Analysis:
         """Create a new analysis record."""
         with self.session() as session:
             analysis = Analysis(sample_id=sample_id, **kwargs)
@@ -247,7 +274,7 @@ class Repository:
             ).first()
             if sample:
                 sample.analysis_count = (sample.analysis_count or 0) + 1
-                sample.last_analyzed = datetime.utcnow()
+                sample.last_analyzed = datetime.now(timezone.utc)
 
             session.flush()
             return analysis
@@ -273,7 +300,7 @@ class Repository:
     def add_yara_matches(
         self,
         analysis_id: int,
-        matches: List[dict],
+        matches: List[Dict[str, Any]],
     ) -> List[YaraMatch]:
         """Add YARA matches to an analysis."""
         with self.session() as session:
@@ -288,10 +315,10 @@ class Repository:
             session.flush()
             return yara_matches
 
-    def get_yara_statistics(self) -> dict:
+    def get_yara_statistics(self) -> Dict[str, Any]:
         """Get YARA rule match statistics."""
         with self.session() as session:
-            total = session.query(func.count(YaraMatch.id)).scalar()
+            total = session.query(func.count(YaraMatch.id)).scalar() or 0
             by_rule = session.query(
                 YaraMatch.rule_name,
                 func.count(YaraMatch.id).label("count")
@@ -300,7 +327,7 @@ class Repository:
             ).limit(10).all()
 
             return {
-                "total_matches": total or 0,
+                "total_matches": total,
                 "top_rules": [
                     {"rule": rule, "count": count}
                     for rule, count in by_rule
@@ -311,7 +338,7 @@ class Repository:
     # Tag Operations
     # ==========================================================================
 
-    def get_or_create_tag(self, name: str, **kwargs) -> Tag:
+    def get_or_create_tag(self, name: str, **kwargs: Any) -> Tag:
         """Get existing tag or create new one."""
         with self.session() as session:
             tag = session.query(Tag).filter(Tag.name == name).first()
@@ -362,7 +389,7 @@ class Repository:
             if setting:
                 setting.value = value
                 setting.value_type = value_type
-                setting.updated_at = datetime.utcnow()
+                setting.updated_at = datetime.now(timezone.utc)
             else:
                 setting = Setting(key=key, value=value, value_type=value_type)
                 session.add(setting)
@@ -398,24 +425,33 @@ class Repository:
 
     def vacuum_database(self) -> None:
         """Run SQLite VACUUM to reclaim space."""
-        with self.session() as session:
-            session.execute(text("VACUUM"))
+        try:
+            with self.session() as session:
+                session.execute(text("VACUUM"))
+        except SQLAlchemyError as e:
+            logger.warning(f"VACUUM failed: {e}")
 
 
 # Global repository instance
 _repository: Optional[Repository] = None
+_repository_lock = threading.Lock()
 
 
 def get_repository(db_path: Optional[str] = None) -> Repository:
     """Get global repository instance."""
     global _repository
     if _repository is None:
-        _repository = Repository(db_path)
+        with _repository_lock:
+            if _repository is None:
+                _repository = Repository(db_path)
     return _repository
 
 
 def init_repository(db_path: str) -> Repository:
     """Initialize repository with custom path."""
     global _repository
-    _repository = Repository(db_path)
+    with _repository_lock:
+        # Reset singleton for reinitialization
+        Repository._instance = None
+        _repository = Repository(db_path)
     return _repository

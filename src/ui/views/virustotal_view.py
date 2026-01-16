@@ -4,6 +4,8 @@ VirusTotal Integration view.
 Manage VirusTotal API and perform hash lookups.
 """
 
+from __future__ import annotations
+
 from typing import Dict, Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,

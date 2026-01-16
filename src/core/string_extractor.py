@@ -5,6 +5,8 @@ Extracts ASCII and Unicode strings from binary files
 and categorizes them by type (URLs, IPs, paths, etc.).
 """
 
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
 from pathlib import Path

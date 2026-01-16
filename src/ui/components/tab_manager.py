@@ -4,6 +4,8 @@ Tab manager component.
 Manages multiple analysis tabs with close functionality.
 """
 
+from __future__ import annotations
+
 from typing import Callable, Dict, Optional, Any
 from PyQt6.QtWidgets import (
     QTabWidget, QWidget, QTabBar, QPushButton, QMenu,

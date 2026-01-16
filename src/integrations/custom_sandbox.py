@@ -4,6 +4,8 @@ Custom VM Sandbox integration.
 Provides SSH-based file submission and analysis for custom sandbox VMs.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional

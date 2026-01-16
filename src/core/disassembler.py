@@ -4,6 +4,8 @@ Multi-architecture disassembly engine.
 Powered by Capstone for x86, x64, ARM, ARM64, MIPS support.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple

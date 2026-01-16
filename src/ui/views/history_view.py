@@ -4,6 +4,8 @@ History view for displaying past analysis results.
 Shows all analyzed samples in a searchable, filterable table.
 """
 
+from __future__ import annotations
+
 from typing import Optional, List
 from datetime import datetime
 from PyQt6.QtWidgets import (

@@ -4,6 +4,8 @@ Dashboard view - main landing page.
 Displays overview statistics, recent samples, and quick actions.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,

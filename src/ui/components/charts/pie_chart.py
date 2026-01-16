@@ -4,6 +4,8 @@ Pie chart visualization component.
 Displays categorical data as a pie chart.
 """
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional, Tuple
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame
 from PyQt6.QtCore import Qt, QRectF, QPointF

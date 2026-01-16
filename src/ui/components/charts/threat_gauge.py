@@ -4,6 +4,8 @@ Threat score gauge visualization.
 Displays threat score as an animated circular gauge.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt, QRectF, QPropertyAnimation, QEasingCurve, pyqtProperty

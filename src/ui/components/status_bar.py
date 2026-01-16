@@ -4,6 +4,8 @@ Enhanced status bar component.
 Provides detailed status information and quick indicators.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from PyQt6.QtWidgets import (
     QStatusBar, QWidget, QHBoxLayout, QLabel, QProgressBar,

@@ -4,6 +4,8 @@ Strings view component.
 Displays extracted strings with filtering and categorization.
 """
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
@@ -330,7 +332,7 @@ class StringsView(QWidget):
         from PyQt6.QtWidgets import QFileDialog
         import csv
         import json
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # Ask for file type
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -361,7 +363,7 @@ class StringsView(QWidget):
                 # Export as JSON
                 with open(file_path, 'w', encoding='utf-8') as f:
                     export_data = {
-                        'export_date': datetime.now().isoformat(),
+                        'export_date': datetime.now(timezone.utc).isoformat(),
                         'total_strings': len(self._filtered_strings),
                         'strings': [{
                             'offset': f"0x{s.get('offset', 0):08X}",

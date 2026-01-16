@@ -2,11 +2,12 @@
 Common utility functions for the Malware Analysis Platform.
 """
 
-import os
+from __future__ import annotations
+
 import hashlib
 from pathlib import Path
-from typing import Any, Iterator, List, Optional, Union
-from datetime import datetime
+from typing import Iterator, List, Optional, Union
+from datetime import datetime, timezone
 
 # Optional dependency
 try:
@@ -48,13 +49,13 @@ def format_timestamp(dt: Optional[datetime] = None) -> str:
     Format datetime to ISO format.
 
     Args:
-        dt: Datetime object (default: now)
+        dt: Datetime object (default: now with UTC timezone)
 
     Returns:
         ISO formatted string
     """
     if dt is None:
-        dt = datetime.now()
+        dt = datetime.now(timezone.utc)
     return dt.isoformat()
 
 

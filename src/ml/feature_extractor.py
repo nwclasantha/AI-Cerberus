@@ -4,13 +4,17 @@ Feature extraction for malware classification.
 Extracts 100+ features from binary files for ML-based classification.
 """
 
+from __future__ import annotations
+
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import math
-import struct
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from ..utils.logger import get_logger
+
+if TYPE_CHECKING:
+    import pefile
 
 logger = get_logger("feature_extractor")
 

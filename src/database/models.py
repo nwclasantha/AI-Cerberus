@@ -5,8 +5,11 @@ Defines the database schema for storing analysis results,
 samples, and related metadata.
 """
 
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
 from typing import List, Optional
+
 from sqlalchemy import (
     Column, Integer, String, Float, Boolean, DateTime,
     Text, ForeignKey, Table, JSON, LargeBinary, Index,
@@ -16,6 +19,11 @@ from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship,
     Session,
 )
+
+
+def utcnow() -> datetime:
+    """Get current UTC time with timezone info."""
+    return datetime.now(timezone.utc)
 
 
 class Base(DeclarativeBase):
@@ -41,7 +49,7 @@ class Tag(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     color: Mapped[str] = mapped_column(String(7), default="#808080")
     description: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     # Relationships
     samples: Mapped[List["Sample"]] = relationship(
@@ -82,8 +90,8 @@ class Sample(Base):
     verdict: Mapped[str] = mapped_column(String(50), default="unknown")
 
     # Metadata
-    first_seen: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    last_analyzed: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    first_seen: Mapped[datetime] = mapped_column(default=utcnow)
+    last_analyzed: Mapped[datetime] = mapped_column(default=utcnow)
     analysis_count: Mapped[int] = mapped_column(Integer, default=0)
     notes: Mapped[Optional[str]] = mapped_column(Text)
 
@@ -123,7 +131,7 @@ class Analysis(Base):
     sample_id: Mapped[int] = mapped_column(ForeignKey("samples.id"), nullable=False)
 
     # Analysis metadata
-    timestamp: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    timestamp: Mapped[datetime] = mapped_column(default=utcnow)
     duration_seconds: Mapped[float] = mapped_column(Float, default=0.0)
     analyzer_version: Mapped[str] = mapped_column(String(50))
 
@@ -284,7 +292,7 @@ class AnalysisQueue(Base):
     file_path: Mapped[str] = mapped_column(String(1000), nullable=False)
     priority: Mapped[int] = mapped_column(Integer, default=5)
     status: Mapped[str] = mapped_column(String(20), default="pending")
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     error_message: Mapped[Optional[str]] = mapped_column(Text)
@@ -302,7 +310,7 @@ class Setting(Base):
     key: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     value: Mapped[str] = mapped_column(Text)
     value_type: Mapped[str] = mapped_column(String(20), default="string")
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     def __repr__(self) -> str:
         return f"<Setting(key='{self.key}')>"

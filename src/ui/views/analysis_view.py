@@ -9,6 +9,8 @@ Shows all analysis data for a file including:
 - ML classification
 """
 
+from __future__ import annotations
+
 from typing import Any, Dict, Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,

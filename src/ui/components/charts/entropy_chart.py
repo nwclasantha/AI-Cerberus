@@ -4,6 +4,8 @@ Entropy visualization chart.
 Displays entropy distribution across file sections.
 """
 
+from __future__ import annotations
+
 from typing import List, Optional, Tuple
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QHBoxLayout
 from PyQt6.QtCore import Qt, QRectF

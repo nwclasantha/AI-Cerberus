@@ -4,6 +4,8 @@ Color definitions for the Malware Analysis Platform.
 Provides a modern dark theme inspired by Ghidra/IDA Pro style interfaces.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Dict
 

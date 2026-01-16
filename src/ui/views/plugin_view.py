@@ -4,6 +4,8 @@ Plugin Manager view.
 Manage and configure analysis plugins.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 from pathlib import Path
 from PyQt6.QtWidgets import (

@@ -4,12 +4,14 @@ Automatic ML model training system.
 Automatically trains models when they don't exist using built-in or collected samples.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .classifier import MalwareClassifier
 from .feature_extractor import FeatureExtractor
@@ -146,7 +148,7 @@ class AutoTrainer:
         # Update training info
         training_time = time.time() - start_time
         self._training_info = {
-            "last_trained": datetime.now().isoformat(),
+            "last_trained": datetime.now(timezone.utc).isoformat(),
             "samples_used": len(samples),
             "training_time_seconds": training_time,
             "metrics": metrics,

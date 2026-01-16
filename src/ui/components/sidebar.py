@@ -4,7 +4,9 @@ Navigation sidebar component.
 Provides a modern, collapsible sidebar for application navigation.
 """
 
-from typing import Callable, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Dict, List, Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QFrame, QSpacerItem, QSizePolicy, QToolTip,

@@ -4,6 +4,8 @@ Hex viewer component.
 Advanced hex editor for viewing binary data.
 """
 
+from __future__ import annotations
+
 from typing import Optional, List
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPlainTextEdit,

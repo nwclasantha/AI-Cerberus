@@ -4,6 +4,8 @@ Analysis mode configuration and management.
 Provides automated and manual analysis modes with configurable components.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 from pathlib import Path
@@ -383,7 +385,7 @@ class AnalysisModeManager:
             }
 
             config_file = self._config_dir / "analysis_modes.json"
-            with open(config_file, "w") as f:
+            with open(config_file, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=2)
 
             logger.debug("Analysis mode configuration saved")
@@ -399,7 +401,7 @@ class AnalysisModeManager:
                 logger.info("No saved configuration, using defaults")
                 return
 
-            with open(config_file, "r") as f:
+            with open(config_file, "r", encoding="utf-8") as f:
                 config = json.load(f)
 
             # Validate and load current mode

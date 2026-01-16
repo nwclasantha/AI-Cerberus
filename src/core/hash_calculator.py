@@ -5,11 +5,13 @@ Supports standard cryptographic hashes (MD5, SHA family)
 and fuzzy hashes (SSDeep, TLSH) for similarity analysis.
 """
 
+from __future__ import annotations
+
 import hashlib
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional
-import time
+from typing import Any, Dict, List, Optional
 
 from .base_analyzer import BaseAnalyzer
 from ..utils.logger import get_logger
@@ -135,12 +137,12 @@ class HashCalculator(BaseAnalyzer):
         return hashes
 
     def _calculate_md5(self, data: bytes) -> str:
-        """Calculate MD5 hash."""
-        return hashlib.md5(data).hexdigest()
+        """Calculate MD5 hash (usedforsecurity=False for FIPS compliance)."""
+        return hashlib.md5(data, usedforsecurity=False).hexdigest()
 
     def _calculate_sha1(self, data: bytes) -> str:
-        """Calculate SHA1 hash."""
-        return hashlib.sha1(data).hexdigest()
+        """Calculate SHA1 hash (usedforsecurity=False for FIPS compliance)."""
+        return hashlib.sha1(data, usedforsecurity=False).hexdigest()
 
     def _calculate_sha256(self, data: bytes) -> str:
         """Calculate SHA256 hash."""
@@ -212,7 +214,7 @@ class HashCalculator(BaseAnalyzer):
 
             # Extract and hash Rich header
             rich_data = data[idx:rich_end + 4]
-            return hashlib.md5(rich_data).hexdigest()
+            return hashlib.md5(rich_data, usedforsecurity=False).hexdigest()
         except Exception as e:
             logger.warning(f"Rich hash calculation failed: {e}")
             return None
