@@ -215,44 +215,90 @@ class BehaviorAnalyzer(BaseAnalyzer):
         self._log_start(file_path)
         start_time = time.time()
 
-        if data is None:
-            data = self._load_file(file_path)
-
         result = BehavioralIndicators()
 
-        # Convert data to string for pattern matching
-        data_str = data.decode("latin-1", errors="ignore").lower()
+        try:
+            if data is None:
+                data = self._load_file(file_path)
 
-        # Get imports set
-        imports_set: Set[str] = set()
-        if imports:
-            imports_set = set(imports)
-        else:
-            # Extract from data
-            imports_set = self._extract_api_names(data)
+            # Convert data to string for pattern matching
+            data_str = data.decode("latin-1", errors="ignore").lower()
 
-        # Get strings set
-        strings_set: Set[str] = set()
-        if strings:
-            strings_set = {s.lower() for s in strings}
+            # Get imports set
+            imports_set: Set[str] = set()
+            if imports:
+                imports_set = set(imports)
+            else:
+                # Extract from data
+                imports_set = self._extract_api_names(data)
 
-        # Analyze each capability
-        self._check_injection(result, imports_set, data_str)
-        self._check_persistence(result, imports_set, data_str)
-        self._check_network(result, imports_set, data_str)
-        self._check_anti_debug(result, imports_set, data_str)
-        self._check_anti_vm(result, data_str)
-        self._check_crypto(result, imports_set)
-        self._check_keylogging(result, imports_set)
-        self._check_screen_capture(result, imports_set)
-        self._check_privilege_escalation(result, imports_set)
-        self._check_backdoor(result, imports_set, data_str)  # NEW: Backdoor detection
+            # Get strings set
+            strings_set: Set[str] = set()
+            if strings:
+                strings_set = {s.lower() for s in strings}
 
-        # Check file/registry/process operations
-        self._check_system_ops(result, imports_set, data_str)
+            # Analyze each capability with individual error handling
+            try:
+                self._check_injection(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"Injection check failed: {e}")
 
-        # Calculate risk score
-        self._calculate_risk(result)
+            try:
+                self._check_persistence(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"Persistence check failed: {e}")
+
+            try:
+                self._check_network(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"Network check failed: {e}")
+
+            try:
+                self._check_anti_debug(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"Anti-debug check failed: {e}")
+
+            try:
+                self._check_anti_vm(result, data_str)
+            except Exception as e:
+                logger.debug(f"Anti-VM check failed: {e}")
+
+            try:
+                self._check_crypto(result, imports_set)
+            except Exception as e:
+                logger.debug(f"Crypto check failed: {e}")
+
+            try:
+                self._check_keylogging(result, imports_set)
+            except Exception as e:
+                logger.debug(f"Keylogging check failed: {e}")
+
+            try:
+                self._check_screen_capture(result, imports_set)
+            except Exception as e:
+                logger.debug(f"Screen capture check failed: {e}")
+
+            try:
+                self._check_privilege_escalation(result, imports_set)
+            except Exception as e:
+                logger.debug(f"Privilege escalation check failed: {e}")
+
+            try:
+                self._check_backdoor(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"Backdoor check failed: {e}")
+
+            # Check file/registry/process operations
+            try:
+                self._check_system_ops(result, imports_set, data_str)
+            except Exception as e:
+                logger.debug(f"System ops check failed: {e}")
+
+            # Calculate risk score
+            self._calculate_risk(result)
+
+        except Exception as e:
+            logger.error(f"Behavioral analysis failed: {e}")
 
         duration = time.time() - start_time
         self._log_complete(file_path, duration)

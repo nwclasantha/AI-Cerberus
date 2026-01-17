@@ -28,10 +28,10 @@ integrations:
     api_url: http://localhost:8090
     enabled: false
   custom_sandbox:
-    enabled: true
-    host: 192.168.0.254
-    username: root
-    password: z80cpu
+    enabled: false
+    host: ''  # Set via environment variable MA_SANDBOX_HOST
+    username: ''  # Set via environment variable MA_SANDBOX_USER
+    password: ''  # Set via environment variable MA_SANDBOX_PASS
     port: 22
   hybrid_analysis:
     api_key: ''
@@ -40,7 +40,7 @@ integrations:
   malwarebazaar:
     enabled: true
   virustotal:
-    api_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    api_key: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
     enabled: true
     rate_limit: 4
 logging:

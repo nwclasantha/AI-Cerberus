@@ -619,3 +619,190 @@ class MalwareClassifier:
     def is_trained(self) -> bool:
         """Check if model is trained."""
         return self._is_trained
+
+    def train_from_features(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        validation_split: float = 0.2,
+    ) -> Dict[str, Any]:
+        """
+        Train the classifier from pre-extracted features.
+
+        This method is used by the incremental learning system
+        when features have already been extracted.
+
+        Args:
+            X: Feature matrix (n_samples, n_features)
+            y: Labels array (n_samples,) - string labels
+            validation_split: Fraction for validation
+
+        Returns:
+            Training metrics
+        """
+        if not self._sklearn_available:
+            logger.error("scikit-learn required for training")
+            return {'status': 'failed', 'error': 'scikit-learn not available'}
+
+        if len(X) == 0 or len(y) == 0:
+            logger.warning("Empty training data provided")
+            return {'status': 'failed', 'error': 'empty_data'}
+
+        try:
+            from sklearn.model_selection import train_test_split
+            from sklearn.preprocessing import StandardScaler
+            from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+            from sklearn.metrics import accuracy_score
+
+            logger.info(f"Training from {len(X)} pre-extracted features")
+
+            # Convert string labels to indices
+            label_to_idx = {label: i for i, label in enumerate(self.LABELS)}
+            y_idx = np.array([label_to_idx.get(str(label), 0) for label in y])
+
+            # Split data
+            if len(X) > 10:
+                X_train, X_val, y_train, y_val = train_test_split(
+                    X, y_idx, test_size=validation_split, random_state=42
+                )
+            else:
+                X_train, X_val = X, X
+                y_train, y_val = y_idx, y_idx
+
+            # Scale features
+            if self._scaler is None:
+                self._scaler = StandardScaler()
+                X_train_scaled = self._scaler.fit_transform(X_train)
+            else:
+                X_train_scaled = self._scaler.transform(X_train)
+            X_val_scaled = self._scaler.transform(X_val)
+
+            # Train Random Forest
+            if self._rf_model is None:
+                self._rf_model = RandomForestClassifier(
+                    n_estimators=100, max_depth=20,
+                    min_samples_split=5, min_samples_leaf=2,
+                    n_jobs=-1, random_state=42,
+                )
+            self._rf_model.fit(X_train_scaled, y_train)
+            rf_accuracy = accuracy_score(y_val, self._rf_model.predict(X_val_scaled))
+
+            # Train Gradient Boosting
+            if self._gb_model is None:
+                self._gb_model = GradientBoostingClassifier(
+                    n_estimators=100, max_depth=5,
+                    learning_rate=0.1, random_state=42,
+                )
+            self._gb_model.fit(X_train_scaled, y_train)
+            gb_accuracy = accuracy_score(y_val, self._gb_model.predict(X_val_scaled))
+
+            self._is_trained = True
+            self._save_models()
+
+            metrics = {
+                'status': 'success',
+                'rf_accuracy': rf_accuracy,
+                'gb_accuracy': gb_accuracy,
+                'samples_trained': len(X_train),
+                'samples_validated': len(X_val),
+            }
+
+            logger.info(f"Training from features complete: RF={rf_accuracy:.3f}, GB={gb_accuracy:.3f}")
+            return metrics
+
+        except Exception as e:
+            logger.error(f"Training from features failed: {e}")
+            return {'status': 'failed', 'error': str(e)}
+
+    def partial_fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+    ) -> Dict[str, Any]:
+        """
+        Incrementally update the model with new samples.
+
+        This method updates the existing model with new data
+        without requiring a full retrain.
+
+        Args:
+            X: Feature matrix (n_samples, n_features)
+            y: Labels array (n_samples,) - string labels
+
+        Returns:
+            Update metrics
+        """
+        if not self._sklearn_available:
+            logger.error("scikit-learn required for partial fit")
+            return {'status': 'failed', 'error': 'scikit-learn not available'}
+
+        if len(X) == 0 or len(y) == 0:
+            logger.warning("Empty data for partial fit")
+            return {'status': 'failed', 'error': 'empty_data'}
+
+        try:
+            # Convert string labels to indices
+            label_to_idx = {label: i for i, label in enumerate(self.LABELS)}
+            y_idx = np.array([label_to_idx.get(str(label), 0) for label in y])
+
+            # Scale features
+            if self._scaler is not None:
+                X_scaled = self._scaler.transform(X)
+            else:
+                from sklearn.preprocessing import StandardScaler
+                self._scaler = StandardScaler()
+                X_scaled = self._scaler.fit_transform(X)
+
+            # For Random Forest and Gradient Boosting, we need to do
+            # warm start training since they don't support true partial_fit
+            # We'll retrain with warm_start=True if the model exists
+
+            from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+
+            # Update RF with warm start
+            if self._rf_model is not None:
+                # Increase n_estimators and train on new data
+                current_n = self._rf_model.n_estimators
+                self._rf_model.set_params(
+                    n_estimators=current_n + 10,
+                    warm_start=True
+                )
+                self._rf_model.fit(X_scaled, y_idx)
+            else:
+                self._rf_model = RandomForestClassifier(
+                    n_estimators=50, max_depth=20,
+                    n_jobs=-1, random_state=42, warm_start=True
+                )
+                self._rf_model.fit(X_scaled, y_idx)
+
+            # Update GB with warm start
+            if self._gb_model is not None:
+                current_n = self._gb_model.n_estimators
+                self._gb_model.set_params(
+                    n_estimators=current_n + 10,
+                    warm_start=True
+                )
+                self._gb_model.fit(X_scaled, y_idx)
+            else:
+                self._gb_model = GradientBoostingClassifier(
+                    n_estimators=50, max_depth=5,
+                    learning_rate=0.1, random_state=42, warm_start=True
+                )
+                self._gb_model.fit(X_scaled, y_idx)
+
+            self._is_trained = True
+            self._save_models()
+
+            metrics = {
+                'status': 'success',
+                'samples_updated': len(X),
+                'rf_n_estimators': self._rf_model.n_estimators,
+                'gb_n_estimators': self._gb_model.n_estimators,
+            }
+
+            logger.info(f"Partial fit complete: {len(X)} samples added")
+            return metrics
+
+        except Exception as e:
+            logger.error(f"Partial fit failed: {e}")
+            return {'status': 'failed', 'error': str(e)}

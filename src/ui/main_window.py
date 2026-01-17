@@ -1025,8 +1025,8 @@ class MainWindow(QMainWindow):
 
     def _update_api_status(self) -> None:
         """Update API connection status indicators."""
-        # Check VirusTotal API key
-        vt_api_key = self._config.get("virustotal.api_key", "")
+        # Check VirusTotal API key (correct path: integrations.virustotal.api_key)
+        vt_api_key = self._config.get("integrations.virustotal.api_key", "")
         if vt_api_key and len(vt_api_key) > 10:
             self._status_bar.set_virustotal_status("configured")
         else:

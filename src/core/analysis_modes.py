@@ -325,7 +325,7 @@ class AnalysisModeManager:
         Create a custom analysis mode.
 
         Args:
-            name: Mode name
+            name: Mode name (alphanumeric, spaces, underscores, hyphens only)
             description: Mode description
             components: List of component IDs
             is_automated: Whether mode runs automatically
@@ -333,13 +333,24 @@ class AnalysisModeManager:
         Returns:
             True if mode was created
         """
+        # Validate mode name: only allow safe characters
+        import re
+        if not name or not re.match(r'^[a-zA-Z0-9_\- ]+$', name):
+            logger.error(f"Invalid mode name: '{name}'. Use only alphanumeric, spaces, underscores, and hyphens.")
+            return False
+
+        # Limit name length to prevent issues
+        if len(name) > 64:
+            logger.error(f"Mode name too long: {len(name)} characters (max 64)")
+            return False
+
         # Validate components
         invalid = [c for c in components if c not in self.COMPONENTS]
         if invalid:
             logger.error(f"Invalid components: {invalid}")
             return False
 
-        mode_id = name.lower().replace(" ", "_")
+        mode_id = name.lower().replace(" ", "_").replace("-", "_")
         self._custom_modes[mode_id] = AnalysisMode(
             name=name,
             description=description,

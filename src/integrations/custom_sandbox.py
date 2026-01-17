@@ -12,12 +12,58 @@ from typing import Any, Dict, List, Optional
 import time
 import json
 import uuid
+import re
 
 from ..utils.config import get_config
 from ..utils.logger import get_logger
 from ..utils.exceptions import IntegrationError
 
 logger = get_logger("custom_sandbox")
+
+
+def _sanitize_filename(filename: str) -> str:
+    """
+    Sanitize filename to prevent command injection.
+
+    Args:
+        filename: Original filename
+
+    Returns:
+        Sanitized filename safe for shell commands
+
+    Raises:
+        ValueError: If filename contains dangerous characters after sanitization
+    """
+    # Remove any path components
+    filename = Path(filename).name
+
+    # Allow only safe characters: alphanumeric, dots, underscores, hyphens
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
+
+    # Prevent empty filenames or filenames that are just dots
+    if not sanitized or sanitized.strip('.') == '':
+        sanitized = 'unnamed_file'
+
+    # Limit length
+    if len(sanitized) > 255:
+        name, ext = (sanitized.rsplit('.', 1) + [''])[:2]
+        sanitized = name[:250] + ('.' + ext if ext else '')
+
+    return sanitized
+
+
+def _shell_escape(value: str) -> str:
+    """
+    Escape a string for safe use in shell commands.
+
+    Args:
+        value: String to escape
+
+    Returns:
+        Shell-escaped string wrapped in single quotes
+    """
+    # Replace single quotes with '\'' (end quote, escaped quote, start quote)
+    return "'" + value.replace("'", "'\"'\"'") + "'"
 
 
 @dataclass
@@ -123,6 +169,12 @@ class CustomVMSandboxClient:
             import paramiko
 
             self._ssh_client = paramiko.SSHClient()
+            # Load known hosts from system
+            known_hosts_path = Path.home() / ".ssh" / "known_hosts"
+            if known_hosts_path.exists():
+                self._ssh_client.load_host_keys(str(known_hosts_path))
+            # WARNING: AutoAddPolicy is used for convenience but is vulnerable to MITM attacks.
+            # In production, use RejectPolicy and verify host keys manually.
             self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
             logger.info(f"Connecting to sandbox VM at {self._host}:{self._port}")
@@ -212,7 +264,12 @@ class CustomVMSandboxClient:
 
         try:
             job_id = str(uuid.uuid4())
-            filename = file_path.name
+            # Sanitize filename to prevent command injection
+            original_filename = file_path.name
+            filename = _sanitize_filename(original_filename)
+
+            if filename != original_filename:
+                logger.warning(f"Filename sanitized: '{original_filename}' -> '{filename}'")
 
             logger.info(f"Submitting file {filename} to VM sandbox (Job: {job_id})")
 

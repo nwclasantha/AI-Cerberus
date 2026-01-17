@@ -29,6 +29,20 @@ logger = get_logger("database")
 T = TypeVar("T", bound=Base)
 
 
+def _escape_like_wildcards(value: str) -> str:
+    """
+    Escape LIKE wildcards in a string for safe use in LIKE queries.
+
+    Args:
+        value: The string to escape
+
+    Returns:
+        String with % and _ characters escaped with backslash
+    """
+    # Escape backslashes first, then wildcards
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 class Repository:
     """
     Database repository with transaction management.
@@ -210,10 +224,12 @@ class Repository:
             q = session.query(Sample)
 
             if query:
+                # Escape LIKE wildcards in user input to prevent pattern injection
+                escaped_query = _escape_like_wildcards(query)
                 q = q.filter(or_(
-                    Sample.filename.ilike(f"%{query}%"),
-                    Sample.sha256.ilike(f"%{query}%"),
-                    Sample.md5.ilike(f"%{query}%"),
+                    Sample.filename.ilike(f"%{escaped_query}%", escape="\\"),
+                    Sample.sha256.ilike(f"%{escaped_query}%", escape="\\"),
+                    Sample.md5.ilike(f"%{escaped_query}%", escape="\\"),
                 ))
 
             if classification:

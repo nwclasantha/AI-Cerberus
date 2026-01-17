@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, List, Optional, Tuple, Union
 from datetime import datetime, timezone
 
 # Optional dependency
@@ -76,7 +76,7 @@ def format_hex(value: int, width: int = 8) -> str:
 def chunk_iterator(
     data: bytes,
     chunk_size: int = 4096,
-) -> Iterator[tuple]:
+) -> Iterator[Tuple[int, bytes]]:
     """
     Iterate over data in chunks.
 
@@ -127,7 +127,7 @@ def extract_strings(
     data: bytes,
     min_length: int = 4,
     include_unicode: bool = True,
-) -> List[tuple]:
+) -> List[Tuple[int, str, str]]:
     """
     Extract ASCII and Unicode strings from binary data.
 

@@ -339,7 +339,6 @@ class VirusTotalClient:
         exc_type: Optional[type],
         exc_val: Optional[BaseException],
         exc_tb: Optional[Any],
-    ) -> bool:
-        """Async context manager exit."""
+    ) -> None:
+        """Async context manager exit. Does not suppress exceptions."""
         await self.close()
-        return False

@@ -173,6 +173,9 @@ class Config:
             "MA_HA_API_KEY": "integrations.hybrid_analysis.api_key",
             "MA_CUCKOO_URL": "integrations.cuckoo.api_url",
             "MA_CUCKOO_KEY": "integrations.cuckoo.api_key",
+            "MA_SANDBOX_HOST": "integrations.custom_sandbox.host",
+            "MA_SANDBOX_USER": "integrations.custom_sandbox.username",
+            "MA_SANDBOX_PASS": "integrations.custom_sandbox.password",
             "MA_LOG_LEVEL": "logging.level",
             "MA_DB_PATH": "database.path",
         }
