@@ -178,8 +178,8 @@ rule GovAPT_SideWinder
         $hta1 = "mshta.exe" ascii wide
         $hta2 = ".hta" ascii wide
         $lnk = ".lnk" ascii wide
-        $target1 = "Pakistan" ascii wide
-        $target2 = "China" ascii wide
+        // UNUSED: $target1 = "Pakistan" ascii wide
+        // UNUSED: $target2 = "China" ascii wide
         $gov = "ministry" ascii wide nocase
 
     condition:
@@ -280,7 +280,7 @@ rule GovAPT_Sandworm_Industroyer
         $ics3 = "OPC DA" ascii
         $wiper1 = "MBR" ascii
         $wiper2 = "wiper" ascii nocase
-        $target = "grid" ascii wide nocase
+        // UNUSED: $target = "grid" ascii wide nocase
 
     condition:
         (1 of ($ind*) and 1 of ($ics*)) or

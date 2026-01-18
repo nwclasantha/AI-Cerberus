@@ -70,8 +70,8 @@ rule Keylogger_GetKeyboardState {
         $api2 = "GetKeyState" ascii
         $api3 = "ToAscii" ascii
         $api4 = "ToUnicode" ascii
-        $buffer = { 68 00 01 00 00 }
-        $loop = "while" ascii nocase
+        // UNUSED: $buffer = { 68 00 01 00 00 }
+        // UNUSED: $loop = "while" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($api1, $api2)) and (any of ($api3, $api4))
 }

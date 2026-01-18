@@ -58,7 +58,7 @@ rule Stealer_Mars {
         $s2 = "grabber" ascii nocase
         $s3 = "loader" ascii
         $sql = "sqlite3" ascii
-        $b64 = "base64" ascii nocase
+        // UNUSED: $b64 = "base64" ascii nocase
         $grab = "GrabPasswords" ascii
     condition:
         uint16(0) == 0x5A4D and (2 of ($s*) or ($sql and $grab))
@@ -131,7 +131,7 @@ rule Stealer_Snake_Keylogger {
         $s1 = "Snake" ascii
         $s2 = "Keylogger" ascii
         $hook = "WH_KEYBOARD_LL" ascii
-        $key = "VK_" ascii
+        // UNUSED: $key = "VK_" ascii
         $smtp = "SmtpClient" ascii
         $tg = "api.telegram.org" ascii
     condition:
@@ -241,7 +241,7 @@ rule Stealer_Discord_Token {
         $path1 = "\\discord\\Local Storage\\leveldb" ascii
         $path2 = "\\discordptb\\Local Storage\\leveldb" ascii
         $path3 = "\\discordcanary\\Local Storage\\leveldb" ascii
-        $regex = /[MN][A-Za-z\d]{23,27}\.[A-Za-z\d-_]{6}\.[A-Za-z\d-_]{27}/ ascii
+        $regex = /[MN][A-Za-z0-9]{23,27}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27}/ ascii
     condition:
         uint16(0) == 0x5A4D and (($discord and $token) or any of ($path*) or $regex)
 }
@@ -255,7 +255,7 @@ rule Stealer_Telegram_Session {
         $tdata = "tdata" ascii
         $s1 = "D877F783D5D3EF8C" ascii
         $s2 = "\\Telegram Desktop\\" ascii
-        $map = "map" ascii
+        // UNUSED: $map = "map" ascii
     condition:
         uint16(0) == 0x5A4D and ($tg and ($tdata or any of ($s*)))
 }
@@ -302,7 +302,7 @@ rule Stealer_Screenshot {
         $api3 = "BitBlt" ascii
         $api4 = "CreateCompatibleBitmap" ascii
         $api5 = "CreateCompatibleDC" ascii
-        $gdi = "gdi32.dll" ascii
+        // UNUSED: $gdi = "gdi32.dll" ascii
         $format = ".png" ascii
         $format2 = ".jpg" ascii
     condition:

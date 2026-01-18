@@ -150,7 +150,7 @@ rule Spyware_Screen_Recorder {
     strings:
         $screen = "screen" ascii nocase
         $record = "record" ascii nocase
-        $capture = "capture" ascii nocase
+        // UNUSED: $capture = "capture" ascii nocase
         $hidden = "hidden" ascii nocase
         $stealth = "stealth" ascii nocase
         $background = "background" ascii nocase

@@ -104,7 +104,7 @@ rule Exfil_Cloud_Storage {
         $mega = "mega.nz" ascii nocase
         $aws = "s3.amazonaws" ascii nocase
         $azure = "blob.core.windows" ascii nocase
-        $api = "API" ascii
+        // UNUSED: $api = "API" ascii
         $upload = "upload" ascii nocase
         $token = "token" ascii nocase
     condition:
@@ -186,7 +186,7 @@ rule Exfil_Telegram_Bot {
         severity = "high"
     strings:
         $tg1 = "api.telegram.org" ascii
-        $tg2 = "/bot" ascii
+        // UNUSED: $tg2 = "/bot" ascii
         $send = "sendDocument" ascii
         $send2 = "sendMessage" ascii
         $send3 = "sendPhoto" ascii
@@ -254,7 +254,7 @@ rule Exfil_Screenshot_Capture {
         $api3 = "BitBlt" ascii
         $api4 = "CreateCompatibleBitmap" ascii
         $api5 = "GetDIBits" ascii
-        $save = "Save" ascii
+        // UNUSED: $save = "Save" ascii
         $ext1 = ".png" ascii
         $ext2 = ".jpg" ascii
         $ext3 = ".bmp" ascii
@@ -285,7 +285,7 @@ rule Exfil_Keylogger_Output {
         $hook = "SetWindowsHookExA" ascii
         $key = "WH_KEYBOARD" ascii
         $ll = "WH_KEYBOARD_LL" ascii
-        $log = "log" ascii nocase
+        // UNUSED: $log = "log" ascii nocase
         $file = "CreateFile" ascii
         $write = "WriteFile" ascii
         $ext = ".txt" ascii

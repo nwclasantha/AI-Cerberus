@@ -278,7 +278,7 @@ rule PUP_Tech_Support_Scam {
     strings:
         $support = "support" ascii nocase
         $call = "call" ascii nocase
-        $phone = "phone" ascii nocase
+        // UNUSED: $phone = "phone" ascii nocase
         $microsoft = "Microsoft" ascii nocase
         $virus = "virus" ascii nocase
         $error = "error" ascii nocase

@@ -15,7 +15,7 @@ rule Chinese_APT1_Comment_Crew {
         $s5 = "COOKIEBAG" ascii
         $c2 = "comment" ascii nocase
         $http = "HTTP" ascii
-        $beacon = "beacon" ascii nocase
+        // UNUSED: $beacon = "beacon" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($c2 and $http))
 }
@@ -29,7 +29,7 @@ rule Chinese_APT3_Gothic_Panda {
         $s2 = "PlugX" ascii nocase
         $s3 = "SHOTPUT" ascii
         $s4 = "DoublePulsar" ascii nocase
-        $mutex = "Global\\" ascii
+        // UNUSED: $mutex = "Global\\" ascii
         $c2_pattern = /[a-z]{5,10}\.[a-z]{2,3}\.cn/ ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or $c2_pattern)
@@ -61,7 +61,7 @@ rule Chinese_APT17_Deputy_Dog {
         $s3 = "Hikit" ascii nocase
         $mshtml = "mshtml" ascii nocase
         $ie_exploit = "CVE-2013" ascii
-        $dll = ".dll" ascii
+        // UNUSED: $dll = ".dll" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($mshtml and $ie_exploit))
 }
@@ -75,7 +75,7 @@ rule Chinese_APT18_Wekby {
         $s2 = "hcdLoader" ascii
         $s3 = "HTTPBrowser" ascii
         $gh0st = "Gh0st" ascii nocase
-        $pisloader = "pisloader" ascii nocase
+        // UNUSED: $pisloader = "pisloader" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or $gh0st)
 }
@@ -89,8 +89,8 @@ rule Chinese_APT19_Deep_Panda {
         $s2 = "Sakula" ascii nocase
         $s3 = "Codoso" ascii nocase
         $s4 = "FireEye" ascii  // often referenced
-        $dll_side = "DLL" ascii
-        $persist = "HKCU" ascii
+        // UNUSED: $dll_side = "DLL" ascii
+        // UNUSED: $persist = "HKCU" ascii
     condition:
         uint16(0) == 0x5A4D and (2 of ($s*))
 }
@@ -119,8 +119,8 @@ rule Chinese_APT30 {
         $s2 = "BACKSPACE" ascii nocase
         $s3 = "FLASHFLOOD" ascii
         $s4 = "SPACESHIP" ascii
-        $gov = "government" ascii nocase
-        $asean = "ASEAN" ascii
+        // UNUSED: $gov = "government" ascii nocase
+        // UNUSED: $asean = "ASEAN" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -151,7 +151,7 @@ rule Chinese_APT41_Winnti {
         $s3 = "Winnti" ascii nocase
         $s4 = "CROSSWALK" ascii nocase
         $s5 = "LOWKEY" ascii nocase
-        $game = "game" ascii nocase
+        // UNUSED: $game = "game" ascii nocase
         $supply = "update" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (2 of ($s*))
@@ -166,8 +166,8 @@ rule Chinese_Winnti_Backdoor {
         $driver = "driver" ascii nocase
         $inject = "inject" ascii nocase
         $xor = { 35 ?? ?? ?? ?? }
-        $config_marker = { 78 9C }  // zlib
-        $persist = "ServiceDll" ascii
+        // UNUSED: $config_marker = { 78 9C }  // zlib
+        // UNUSED: $persist = "ServiceDll" ascii
     condition:
         uint16(0) == 0x5A4D and ($winnti or ($driver and $inject and $xor))
 }
@@ -183,7 +183,7 @@ rule Chinese_PlugX {
         $s4 = "gulpf" ascii
         $config = { 45 4E 43 52 }  // ENCR
         $xor_key = { 41 41 41 41 }
-        $http_header = "X-Session" ascii
+        // UNUSED: $http_header = "X-Session" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($config and $xor_key))
 }
@@ -198,9 +198,9 @@ rule Chinese_ShadowPad {
         $module1 = "Plugins" ascii
         $module2 = "Config" ascii
         $module3 = "Online" ascii
-        $dns = "DNS" ascii
-        $tcp = "TCP" ascii
-        $http = "HTTP" ascii
+        // UNUSED: $dns = "DNS" ascii
+        // UNUSED: $tcp = "TCP" ascii
+        // UNUSED: $http = "HTTP" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or (all of ($module*)))
 }
@@ -231,7 +231,7 @@ rule Chinese_Poison_Ivy {
         $stub = "stub" ascii
         $admin = "admin" ascii
         $password = "password" ascii
-        $active = "Active Setup" ascii
+        // UNUSED: $active = "Active Setup" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($pi*) or ($stub and $admin and $password))
 }
@@ -245,7 +245,7 @@ rule Chinese_Taidoor {
         $config1 = "svchost.dll" ascii
         $config2 = "rasauto.dll" ascii
         $mutex = "YOURKEY" ascii
-        $http = "POST" ascii
+        // UNUSED: $http = "POST" ascii
     condition:
         uint16(0) == 0x5A4D and ($taidoor or (any of ($config*) and $mutex))
 }
@@ -273,8 +273,8 @@ rule Chinese_IceFog {
         $fucksun = "fucksun" ascii nocase
         $dagger = "Dagger" ascii
         $javafog = "Javafog" ascii
-        $upload = "upload" ascii
-        $download = "download" ascii
+        // UNUSED: $upload = "upload" ascii
+        // UNUSED: $download = "download" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($icefog, $fucksun, $dagger, $javafog))
 }
@@ -300,9 +300,9 @@ rule Chinese_Hellsing_APT {
     strings:
         $hellsing = "Hellsing" ascii nocase
         $goblin = "Goblin" ascii nocase
-        $panda = "Panda" ascii nocase
+        // UNUSED: $panda = "Panda" ascii nocase
         $xrat = "xRAT" ascii
-        $config = "config" ascii
+        // UNUSED: $config = "config" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($hellsing, $goblin) or $xrat)
 }
@@ -327,8 +327,8 @@ rule Chinese_Operation_Soft_Cell {
         severity = "critical"
     strings:
         $softcell = "SoftCell" ascii nocase
-        $telecom = "telecom" ascii nocase
-        $cdr = "CDR" ascii
+        // UNUSED: $telecom = "telecom" ascii nocase
+        // UNUSED: $cdr = "CDR" ascii
         $modified = "modified_mimikatz" ascii
         $china_chopper = "chopper" ascii nocase
     condition:
@@ -343,9 +343,9 @@ rule Chinese_Hafnium_ProxyLogon {
         $s1 = "ProxyLogon" ascii nocase
         $s2 = "HAFNIUM" ascii nocase
         $s3 = "China Chopper" ascii nocase
-        $exchange = "Exchange" ascii
-        $owa = "OWA" ascii
-        $webshell = "webshell" ascii nocase
+        // UNUSED: $exchange = "Exchange" ascii
+        // UNUSED: $owa = "OWA" ascii
+        // UNUSED: $webshell = "webshell" ascii nocase
         $cve1 = "CVE-2021-26855" ascii
         $cve2 = "CVE-2021-27065" ascii
     condition:

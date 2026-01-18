@@ -13,8 +13,8 @@ rule Iranian_APT33_Elfin {
         $s3 = "DROPSHOT" ascii nocase
         $s4 = "SHAPESHIFT" ascii nocase
         $s5 = "Elfin" ascii nocase
-        $aerospace = "aerospace" ascii nocase
-        $energy = "energy" ascii nocase
+        // UNUSED: $aerospace = "aerospace" ascii nocase
+        // UNUSED: $energy = "energy" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -30,8 +30,8 @@ rule Iranian_APT34_OilRig {
         $s4 = "VALUEVAULT" ascii nocase
         $s5 = "OilRig" ascii nocase
         $s6 = "LONGWATCH" ascii nocase
-        $dns = "DNS" ascii
-        $c2 = "c2" ascii nocase
+        // UNUSED: $dns = "DNS" ascii
+        // UNUSED: $c2 = "c2" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -46,8 +46,8 @@ rule Iranian_APT35_Charming_Kitten {
         $s3 = "Phosphorus" ascii nocase
         $s4 = "POWERSTAR" ascii nocase
         $s5 = "HYPERSCRAPE" ascii nocase
-        $phish = "phishing" ascii nocase
-        $google = "google" ascii nocase
+        // UNUSED: $phish = "phishing" ascii nocase
+        // UNUSED: $google = "google" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -62,8 +62,8 @@ rule Iranian_APT39_Chafer {
         $s3 = "SEAWEED" ascii nocase
         $s4 = "CACHEMONEY" ascii nocase
         $s5 = "POWBAT" ascii nocase
-        $telecom = "telecom" ascii nocase
-        $travel = "travel" ascii nocase
+        // UNUSED: $telecom = "telecom" ascii nocase
+        // UNUSED: $travel = "travel" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -78,7 +78,7 @@ rule Iranian_MuddyWater {
         $s3 = "SHARPSTATS" ascii nocase
         $s4 = "LOLBINS" ascii nocase
         $ps = "powershell" ascii nocase
-        $macro = "macro" ascii nocase
+        // UNUSED: $macro = "macro" ascii nocase
         $obfusc = "obfuscation" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($ps and $obfusc))
@@ -122,8 +122,8 @@ rule Iranian_CopyKittens {
         $s2 = "MATRYOSHKA" ascii nocase
         $s3 = "Venom" ascii nocase
         $s4 = "COOKIEJAR" ascii nocase
-        $israel = "israel" ascii nocase
-        $gov = "gov" ascii nocase
+        // UNUSED: $israel = "israel" ascii nocase
+        // UNUSED: $gov = "gov" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -151,7 +151,7 @@ rule Iranian_MagicHound {
         $s2 = "Cobalt Gypsy" ascii nocase
         $s3 = "PupyRAT" ascii nocase
         $s4 = "Meterpreter" ascii nocase
-        $iran = "iran" ascii nocase
+        // UNUSED: $iran = "iran" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -179,8 +179,8 @@ rule Iranian_Lyceum {
         $s2 = "Hexane" ascii nocase
         $s3 = "DanBot" ascii nocase
         $s4 = "SPIRLIX" ascii nocase
-        $dns_tunnel = "DNS" ascii
-        $c2 = "http" ascii nocase
+        // UNUSED: $dns_tunnel = "DNS" ascii
+        // UNUSED: $c2 = "http" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -208,8 +208,8 @@ rule Iranian_Domestic_Kitten {
         $s1 = "DomesticKitten" ascii nocase
         $s2 = "APT-C-50" ascii
         $s3 = "FurBall" ascii nocase
-        $android = "android" ascii nocase
-        $mobile = "mobile" ascii nocase
+        // UNUSED: $android = "android" ascii nocase
+        // UNUSED: $mobile = "mobile" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -238,8 +238,8 @@ rule Iranian_Nemesis_Kitten {
         $s2 = "DEV-0270" ascii
         $s3 = "BitLocker" ascii
         $s4 = "DiskCryptor" ascii
-        $ransom = "ransom" ascii nocase
-        $encrypt = "encrypt" ascii nocase
+        // UNUSED: $ransom = "ransom" ascii nocase
+        // UNUSED: $encrypt = "encrypt" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -266,7 +266,7 @@ rule Iranian_SectorA01 {
         $remexi = "Remexi" ascii nocase
         $mechaflounder = "MechaFlounder" ascii nocase
         $meterpreter = "Meterpreter" ascii nocase
-        $cobaltstrike = "CobaltStrike" ascii nocase
+        // UNUSED: $cobaltstrike = "CobaltStrike" ascii nocase
         $ps = "powershell" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($remexi, $mechaflounder) or ($meterpreter and $ps))

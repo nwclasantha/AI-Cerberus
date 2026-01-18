@@ -41,6 +41,11 @@ from .auto_learning_engine import (
     AutoLearnDecision,
     get_auto_learning_engine
 )
+from .enhanced_local_detection import (
+    EnhancedLocalDetector,
+    LocalDetectionResult,
+    get_enhanced_local_detector
+)
 
 logger = get_logger("combined_engine")
 
@@ -290,6 +295,7 @@ class CombinedAnalysisEngine:
         self._fp_prevention = None  # False positive prevention
         self._auto_learning = None  # FULLY AUTOMATED learning engine
         self._auto_trainer = None  # AUTOMATIC ML model training
+        self._enhanced_local = None  # Enhanced LOCAL detection (NO API needed)
 
         # Statistics for calibration
         self._detection_stats = {
@@ -397,6 +403,12 @@ class CombinedAnalysisEngine:
                 logger.warning("Auto-trainer not available")
         return self._auto_trainer
 
+    def _load_enhanced_local(self) -> EnhancedLocalDetector:
+        """Lazy load enhanced local detector (NO API needed)."""
+        if self._enhanced_local is None:
+            self._enhanced_local = get_enhanced_local_detector()
+        return self._enhanced_local
+
     async def analyze(
         self,
         file_path: Path,
@@ -436,6 +448,11 @@ class CombinedAnalysisEngine:
             logger.info(f"Auto-learned file found: {file_hash[:16]}... "
                        f"({'LEGITIMATE' if known_legitimate else 'MALICIOUS'})")
 
+            # Still do disassembly if requested (for code block analysis)
+            code_blocks = []
+            if include_disasm:
+                _, code_blocks = await self._analyze_disassembly(file_path, data)
+
             result = CombinedAnalysisResult(
                 verdict=ThreatVerdict.CLEAN if known_legitimate else ThreatVerdict.MALICIOUS,
                 threat_score=5.0 if known_legitimate else 85.0,
@@ -447,7 +464,9 @@ class CombinedAnalysisEngine:
                 legitimacy_confidence=known_confidence,
                 previously_known=True,
                 auto_learn_source="database",
-                auto_learn_reason="Previously auto-learned file"
+                auto_learn_reason="Previously auto-learned file",
+                suspicious_code_blocks=code_blocks,
+                total_suspicious_instructions=sum(len(b.instructions) for b in code_blocks)
             )
             return result
 
@@ -498,7 +517,7 @@ class CombinedAnalysisEngine:
             detections[DetectionSource.BEHAVIORAL] = behavior_result
 
         # 7. Entropy Analysis
-        entropy_result = await self._analyze_entropy(data)
+        entropy_result = await self._analyze_entropy(file_path, data)
         if entropy_result:
             detections[DetectionSource.ENTROPY] = entropy_result
 
@@ -572,8 +591,12 @@ class CombinedAnalysisEngine:
         """
         Apply false positive prevention to the analysis result.
 
-        This checks if the file is legitimate and overrides malicious
-        detections if necessary. Legitimate files should NEVER be flagged.
+        Uses ENHANCED LOCAL DETECTION - NO EXTERNAL API NEEDED!
+
+        Priority order:
+        1. Enhanced local detection (signatures, PE analysis, category)
+        2. Traditional legitimacy checks
+        3. Override malicious if legitimate
 
         Args:
             result: The initial analysis result
@@ -584,27 +607,111 @@ class CombinedAnalysisEngine:
         Returns:
             Updated CombinedAnalysisResult with legitimacy check applied
         """
+        # ================================================================
+        # ENHANCED LOCAL DETECTION (NO API NEEDED!)
+        # This is the PRIMARY legitimacy check
+        # ================================================================
+        enhanced_detector = self._load_enhanced_local()
+        local_result = enhanced_detector.analyze(file_path, data)
+
+        # Update result with enhanced local detection info
+        result.has_valid_signature = local_result.has_valid_signature
+        result.publisher_name = local_result.publisher
+        result.is_well_known_app = bool(local_result.detected_category)
+        result.well_known_app_name = local_result.detected_category
+
+        # If enhanced local detection says OVERRIDE, do it immediately
+        if local_result.override_malicious:
+            logger.info(
+                f"ENHANCED LOCAL: Override malicious for {file_path.name}: "
+                f"{local_result.override_reason}"
+            )
+
+            result.detection_overridden = True
+            result.override_reason = f"Local detection: {local_result.override_reason}"
+            result.is_malicious = False
+            result.is_legitimate = True
+            result.verdict = ThreatVerdict.CLEAN
+            result.threat_score = local_result.threat_score
+            result.legitimacy_confidence = local_result.confidence
+            result.legitimacy_reason = "; ".join(local_result.reasons)
+
+            self._detection_stats['false_positives'] += 1
+            return result
+
+        # If local detection is confident it's legitimate
+        if local_result.is_legitimate and local_result.confidence >= 0.65:
+            result.is_legitimate = True
+            result.legitimacy_confidence = local_result.confidence
+            result.legitimacy_reason = "; ".join(local_result.reasons)
+
+            # Override if currently marked malicious
+            if result.is_malicious or result.verdict in [ThreatVerdict.MALICIOUS, ThreatVerdict.CRITICAL, ThreatVerdict.SUSPICIOUS]:
+                logger.info(
+                    f"LOCAL LEGITIMACY: Override for {file_path.name} "
+                    f"(confidence: {local_result.confidence:.0%})"
+                )
+
+                result.detection_overridden = True
+                result.override_reason = f"Local analysis: {'; '.join(local_result.reasons[:2])}"
+                result.is_malicious = False
+                result.verdict = ThreatVerdict.CLEAN
+                result.threat_score = min(20.0, result.threat_score * 0.2)
+
+                self._detection_stats['false_positives'] += 1
+                return result
+
+        # ================================================================
+        # IF LOCAL DETECTION SAYS MALICIOUS, FLAG IT!
+        # This catches malware that other detectors missed
+        # ================================================================
+        if local_result.is_malicious:
+            logger.info(
+                f"ENHANCED LOCAL: Detected MALICIOUS for {file_path.name}: "
+                f"{'; '.join(local_result.reasons[:3])}"
+            )
+
+            result.is_malicious = True
+            result.is_legitimate = False
+
+            # Determine verdict based on threat score
+            if local_result.threat_score >= 80:
+                result.verdict = ThreatVerdict.CRITICAL
+            elif local_result.threat_score >= 60:
+                result.verdict = ThreatVerdict.MALICIOUS
+            else:
+                result.verdict = ThreatVerdict.SUSPICIOUS
+
+            result.threat_score = max(result.threat_score, local_result.threat_score)
+            result.legitimacy_reason = "; ".join(local_result.reasons)
+
+            self._detection_stats['malicious_detected'] += 1
+            return result
+
+        # ================================================================
+        # FALLBACK: Traditional legitimacy checks
+        # ================================================================
         fp_prevention = self._load_fp_prevention()
 
-        # Check file legitimacy
         legitimacy = fp_prevention.check_legitimacy(
             file_path=file_path,
             file_hash=file_hash,
             data=data
         )
 
-        # Store legitimacy info in result
-        result.is_legitimate = legitimacy.is_legitimate
-        result.legitimacy_confidence = legitimacy.confidence
-        result.legitimacy_reason = legitimacy.reason
-        result.has_valid_signature = legitimacy.has_valid_signature
+        # Merge with local result
+        if not result.has_valid_signature:
+            result.has_valid_signature = legitimacy.has_valid_signature
         result.is_trusted_publisher = legitimacy.is_trusted_publisher
         result.is_system_file = legitimacy.is_system_file
         result.is_whitelisted = legitimacy.is_whitelisted
-        result.is_well_known_app = legitimacy.is_well_known_app
-        result.well_known_app_name = legitimacy.well_known_app_name
 
-        # If file was detected as malicious, check if we should override
+        if legitimacy.is_legitimate and not result.is_legitimate:
+            result.is_legitimate = True
+            result.legitimacy_confidence = max(result.legitimacy_confidence, legitimacy.confidence)
+            result.legitimacy_reason = legitimacy.reason
+
+        # Final override check
         if result.is_malicious or result.verdict in [ThreatVerdict.MALICIOUS, ThreatVerdict.CRITICAL, ThreatVerdict.SUSPICIOUS]:
             should_override, override_reason = fp_prevention.should_override_detection(
                 file_path=file_path,
@@ -615,32 +722,20 @@ class CombinedAnalysisEngine:
             )
 
             if should_override:
-                logger.info(
-                    f"False positive prevented for {file_path.name}: {override_reason}"
-                )
+                logger.info(f"FP Prevention override for {file_path.name}: {override_reason}")
 
-                # Override the detection - mark as clean
                 result.detection_overridden = True
                 result.override_reason = override_reason
                 result.is_malicious = False
                 result.verdict = ThreatVerdict.CLEAN
-
-                # Reduce threat score significantly for overridden files
-                # Keep a small score for transparency but below detection threshold
                 result.threat_score = min(15.0, result.threat_score * 0.15)
-
-                # Adjust confidence to reflect the override
                 result.confidence = max(result.confidence, legitimacy.confidence)
 
-                # Track statistics
                 self._detection_stats['false_positives'] += 1
 
-        # Log legitimacy check for all files
-        if legitimacy.is_legitimate:
-            logger.debug(
-                f"Legitimate file verified: {file_path.name} "
-                f"(confidence: {legitimacy.confidence:.2f})"
-            )
+        # Log result
+        if result.is_legitimate:
+            logger.debug(f"Legitimate: {file_path.name} (confidence: {result.legitimacy_confidence:.2f})")
 
         return result
 
@@ -705,16 +800,24 @@ class CombinedAnalysisEngine:
             result.auto_learn_reason = decision.reason
 
             # If auto-learning says legitimate but we flagged malicious, override
+            # IMPORTANT: Don't override if local detection is highly confident (threat_score >= 70)
             if decision.is_legitimate and result.is_malicious:
-                logger.info(
-                    f"AUTO-LEARNING override: {file_path.name} marked LEGITIMATE "
-                    f"({decision.reason})"
-                )
-                result.is_malicious = False
-                result.verdict = ThreatVerdict.CLEAN
-                result.threat_score = min(15.0, result.threat_score * 0.2)
-                result.detection_overridden = True
-                result.override_reason = f"Auto-learned: {decision.reason}"
+                # Safeguard: Don't override high-confidence malicious detections
+                if result.threat_score >= 70:
+                    logger.warning(
+                        f"AUTO-LEARNING blocked: {file_path.name} has high threat score "
+                        f"({result.threat_score}), not overriding malicious detection"
+                    )
+                else:
+                    logger.info(
+                        f"AUTO-LEARNING override: {file_path.name} marked LEGITIMATE "
+                        f"({decision.reason})"
+                    )
+                    result.is_malicious = False
+                    result.verdict = ThreatVerdict.CLEAN
+                    result.threat_score = min(15.0, result.threat_score * 0.2)
+                    result.detection_overridden = True
+                    result.override_reason = f"Auto-learned: {decision.reason}"
 
             # If auto-learning confirms malicious
             elif not decision.is_legitimate and not result.is_malicious:
@@ -873,7 +976,9 @@ class CombinedAnalysisEngine:
         try:
             result = classifier.classify(file_path)
 
-            is_malicious = result.classification in ['malicious', 'suspicious']
+            # ClassificationResult uses 'prediction' not 'classification'
+            prediction = result.prediction
+            is_malicious = prediction in ['malicious', 'suspicious']
             score = result.confidence if is_malicious else 1 - result.confidence
 
             return SourceDetection(
@@ -882,10 +987,10 @@ class CombinedAnalysisEngine:
                 confidence=result.confidence,
                 score=score,
                 details={
-                    'classification': result.classification,
+                    'classification': prediction,
                     'probabilities': getattr(result, 'probabilities', {}),
                 },
-                detections=[result.classification] if is_malicious else []
+                detections=[prediction] if is_malicious else []
             )
         except Exception as e:
             logger.warning(f"ML classification failed: {e}")
@@ -902,7 +1007,8 @@ class CombinedAnalysisEngine:
             return None
 
         try:
-            matches = engine.scan_file(file_path)
+            # YaraEngine.analyze() returns List[YaraMatch]
+            matches = engine.analyze(file_path, data)
 
             # Calculate score based on matches
             score = 0.0
@@ -916,23 +1022,27 @@ class CombinedAnalysisEngine:
             }
 
             for match in matches:
-                severity = match.get('severity', 'medium')
+                # YaraMatch has .severity and .rule attributes
+                severity = getattr(match, 'severity', 'medium')
                 score += severity_scores.get(severity, 0.1)
-                detections.append(match.get('rule', 'unknown'))
+                detections.append(getattr(match, 'rule', 'unknown'))
 
             score = min(1.0, score)
             is_malicious = score >= 0.3 or any(
-                m.get('severity') == 'critical' for m in matches
+                getattr(m, 'severity', '') == 'critical' for m in matches
             )
 
             confidence = min(0.95, 0.5 + len(matches) * 0.1)
+
+            # Convert YaraMatch objects to dicts for storage
+            match_dicts = [m.to_dict() if hasattr(m, 'to_dict') else {'rule': str(m)} for m in matches]
 
             return SourceDetection(
                 source=DetectionSource.YARA_RULES,
                 is_malicious=is_malicious,
                 confidence=confidence,
                 score=score,
-                details={'matches': matches},
+                details={'matches': match_dicts},
                 detections=detections
             )
         except Exception as e:
@@ -950,12 +1060,14 @@ class CombinedAnalysisEngine:
             return None
 
         try:
-            report = await client.get_file_report(file_hash)
+            # VTReport is a dataclass returned by lookup_hash
+            report = await client.lookup_hash(file_hash)
 
             if report is None:
                 return None
 
-            positives = report.malicious_count + report.suspicious_count
+            # VTReport uses detection_count (not malicious_count/suspicious_count)
+            positives = report.detection_count
             total = report.total_engines
 
             if total == 0:
@@ -977,7 +1089,8 @@ class CombinedAnalysisEngine:
                     'total': total,
                     'ratio': f"{positives}/{total}",
                 },
-                detections=list(report.detection_details.keys())[:10]
+                # VTReport uses detections dict (not detection_details)
+                detections=list(report.detections.keys())[:10]
             )
         except Exception as e:
             logger.warning(f"VirusTotal analysis failed: {e}")
@@ -994,13 +1107,18 @@ class CombinedAnalysisEngine:
             return None, []
 
         try:
-            result = disasm.disassemble_file(file_path)
+            # DisassemblyResult is a dataclass with .instructions attribute
+            result = disasm.analyze(file_path, data)
 
             if result is None:
                 return None, []
 
-            suspicious_instructions = result.get('suspicious_instructions', [])
-            basic_blocks = result.get('basic_blocks', [])
+            # Filter suspicious instructions from all instructions
+            # Instruction is a dataclass with .is_suspicious, .threat_level, .suspicion_reasons
+            suspicious_instructions = [
+                instr for instr in result.instructions
+                if instr.is_suspicious
+            ]
 
             # Group suspicious instructions into code blocks
             code_blocks = self._group_code_blocks(suspicious_instructions)
@@ -1008,16 +1126,17 @@ class CombinedAnalysisEngine:
             # Calculate score
             score = min(1.0, len(suspicious_instructions) / 100)
             is_malicious = score >= 0.3 or any(
-                i.get('threat_level') == 'critical'
-                for i in suspicious_instructions
+                instr.threat_level == 'critical'
+                for instr in suspicious_instructions
             )
 
             confidence = min(0.85, 0.5 + len(suspicious_instructions) * 0.01)
 
-            detections = list(set(
-                i.get('suspicion_reason', '')
-                for i in suspicious_instructions[:20]
-            ))
+            # Collect unique suspicion reasons (each instruction has a list of reasons)
+            all_reasons = []
+            for instr in suspicious_instructions[:20]:
+                all_reasons.extend(instr.suspicion_reasons)
+            detections = list(set(all_reasons))
 
             return SourceDetection(
                 source=DetectionSource.DISASSEMBLY,
@@ -1025,7 +1144,7 @@ class CombinedAnalysisEngine:
                 confidence=confidence,
                 score=score,
                 details={
-                    'total_instructions': result.get('total_instructions', 0),
+                    'total_instructions': len(result.instructions),
                     'suspicious_count': len(suspicious_instructions),
                 },
                 detections=detections
@@ -1036,16 +1155,20 @@ class CombinedAnalysisEngine:
 
     def _group_code_blocks(
         self,
-        suspicious_instructions: List[Dict]
+        suspicious_instructions: List
     ) -> List[CodeBlock]:
-        """Group suspicious instructions into code blocks."""
+        """Group suspicious instructions into code blocks.
+
+        Args:
+            suspicious_instructions: List of Instruction dataclass objects
+        """
         if not suspicious_instructions:
             return []
 
-        # Sort by address
+        # Sort by address - Instruction is a dataclass with .address attribute
         sorted_instrs = sorted(
             suspicious_instructions,
-            key=lambda x: x.get('address', 0)
+            key=lambda x: getattr(x, 'address', 0)
         )
 
         blocks = []
@@ -1053,7 +1176,7 @@ class CombinedAnalysisEngine:
         last_addr = -1000
 
         for instr in sorted_instrs:
-            addr = instr.get('address', 0)
+            addr = getattr(instr, 'address', 0)
 
             # Start new block if gap > 100 bytes
             if addr - last_addr > 100 and current_block:
@@ -1068,34 +1191,48 @@ class CombinedAnalysisEngine:
 
         return blocks
 
-    def _create_code_block(self, instructions: List[Dict]) -> CodeBlock:
-        """Create a CodeBlock from instructions."""
+    def _create_code_block(self, instructions: List) -> CodeBlock:
+        """Create a CodeBlock from instructions.
+
+        Args:
+            instructions: List of Instruction dataclass objects
+        """
         # Determine highest threat level
-        threat_levels = {'critical': 4, 'high': 3, 'medium': 2, 'low': 1}
+        # Instruction dataclass has .threat_level attribute
+        threat_levels = {'critical': 4, 'high': 3, 'medium': 2, 'low': 1, 'clean': 0}
         max_level = max(
-            threat_levels.get(i.get('threat_level', 'low'), 1)
+            threat_levels.get(getattr(i, 'threat_level', 'low'), 1)
             for i in instructions
         )
-        level_names = {4: 'critical', 3: 'high', 2: 'medium', 1: 'low'}
-        threat_level = level_names[max_level]
+        level_names = {4: 'critical', 3: 'high', 2: 'medium', 1: 'low', 0: 'clean'}
+        threat_level = level_names.get(max_level, 'low')
 
-        # Determine category
-        reasons = [i.get('suspicion_reason', '') for i in instructions]
-        if any('inject' in r.lower() for r in reasons):
+        # Determine category based on suspicion_reasons (list of strings per instruction)
+        all_reasons = []
+        for i in instructions:
+            reasons = getattr(i, 'suspicion_reasons', [])
+            all_reasons.extend(reasons)
+
+        # Flatten and check for category keywords
+        reason_text = ' '.join(all_reasons).lower()
+        if 'inject' in reason_text:
             category = 'injection'
-        elif any('debug' in r.lower() or 'anti' in r.lower() for r in reasons):
+        elif 'debug' in reason_text or 'anti' in reason_text:
             category = 'evasion'
-        elif any('persist' in r.lower() or 'registry' in r.lower() for r in reasons):
+        elif 'persist' in reason_text or 'registry' in reason_text:
             category = 'persistence'
-        elif any('network' in r.lower() or 'socket' in r.lower() for r in reasons):
+        elif 'network' in reason_text or 'socket' in reason_text:
             category = 'network'
         else:
             category = 'suspicious'
 
+        # Convert instructions to dicts for storage in CodeBlock
+        instr_dicts = [i.to_dict() if hasattr(i, 'to_dict') else {'address': getattr(i, 'address', 0)} for i in instructions]
+
         return CodeBlock(
-            start_address=instructions[0].get('address', 0),
-            end_address=instructions[-1].get('address', 0),
-            instructions=instructions,
+            start_address=getattr(instructions[0], 'address', 0),
+            end_address=getattr(instructions[-1], 'address', 0),
+            instructions=instr_dicts,
             threat_level=threat_level,
             category=category,
             description=f"{len(instructions)} suspicious instructions ({category})",
@@ -1113,26 +1250,53 @@ class CombinedAnalysisEngine:
             return None
 
         try:
+            # BehavioralIndicators is a dataclass with attributes, not dict
             result = analyzer.analyze(file_path, data)
 
-            indicators = result.get('indicators', [])
-            score = result.get('threat_score', 0) / 100
+            # Get risk score (0-100) and normalize to 0-1
+            score = result.risk_score / 100.0
 
-            is_malicious = score >= 0.4 or len(indicators) >= 5
+            # Count capabilities as indicators
+            capability_count = result.capability_count()
+
+            # Collect detection names from various indicator lists
+            detections = []
+            if result.has_backdoor:
+                detections.append('backdoor_capability')
+                detections.extend(result.backdoor_indicators[:3])
+            if result.has_injection:
+                detections.append('injection_capability')
+                detections.extend(result.injection_techniques[:3])
+            if result.has_persistence:
+                detections.append('persistence_capability')
+                detections.extend(result.persistence_mechanisms[:3])
+            if result.has_network:
+                detections.append('network_capability')
+                detections.extend(result.network_indicators[:3])
+            if result.has_anti_debug:
+                detections.append('anti_debug_capability')
+            if result.has_anti_vm:
+                detections.append('anti_vm_capability')
+            detections.extend(result.evasion_techniques[:3])
+
+            is_malicious = score >= 0.4 or capability_count >= 5 or result.has_backdoor
 
             return SourceDetection(
                 source=DetectionSource.BEHAVIORAL,
                 is_malicious=is_malicious,
-                confidence=min(0.8, 0.5 + len(indicators) * 0.05),
+                confidence=min(0.8, 0.5 + capability_count * 0.05),
                 score=score,
-                details={'indicator_count': len(indicators)},
-                detections=[i.get('name', '') for i in indicators[:10]]
+                details={
+                    'indicator_count': capability_count,
+                    'risk_level': result.risk_level,
+                },
+                detections=detections[:10]
             )
         except Exception as e:
             logger.warning(f"Behavioral analysis failed: {e}")
             return None
 
-    async def _analyze_entropy(self, data: bytes) -> Optional[SourceDetection]:
+    async def _analyze_entropy(self, file_path: Path, data: bytes) -> Optional[SourceDetection]:
         """Analyze entropy patterns."""
         analyzer = self._load_entropy_analyzer()
         if analyzer is None:
@@ -1140,9 +1304,11 @@ class CombinedAnalysisEngine:
             return self._basic_entropy_analysis(data)
 
         try:
-            result = analyzer.analyze(data)
+            # EntropyResult is a dataclass with .raw (0-8 bits) and .overall (0-1 normalized)
+            result = analyzer.analyze(file_path, data)
 
-            overall_entropy = result.get('overall_entropy', 0)
+            # Use raw entropy (0-8 bits) for thresholds
+            overall_entropy = result.raw
 
             # High entropy indicates packing/encryption
             if overall_entropy > 7.5:
@@ -1165,7 +1331,8 @@ class CombinedAnalysisEngine:
                 score=score,
                 details={
                     'overall_entropy': overall_entropy,
-                    'packed': overall_entropy > 7.0,
+                    'packed': result.is_packed,
+                    'assessment': result.assessment,
                 },
                 detections=['high_entropy'] if is_malicious else []
             )

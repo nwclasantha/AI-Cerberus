@@ -11,7 +11,7 @@ rule Banking_Emotet {
         $emotet = "Emotet" ascii nocase
         $heodo = "Heodo" ascii nocase
         $geodo = "Geodo" ascii nocase
-        $epoch = "Epoch" ascii nocase
+        // UNUSED: $epoch = "Epoch" ascii nocase
         $dll_export = "DllRegisterServer" ascii
         $cmd = "cmd.exe" ascii
         $ps = "powershell" ascii nocase
@@ -44,9 +44,9 @@ rule Banking_QakBot {
         $qbot = "QBot" ascii nocase
         $quakbot = "QuakBot" ascii nocase
         $pinkslip = "PinkSlip" ascii nocase
-        $campaign = "campaign" ascii nocase
-        $dll = "DllRegisterServer" ascii
-        $export = "DllEntryPoint" ascii
+        // UNUSED: $campaign = "campaign" ascii nocase
+        // UNUSED: $dll = "DllRegisterServer" ascii
+        // UNUSED: $export = "DllEntryPoint" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($qak, $qbot, $quakbot, $pinkslip))
 }
@@ -58,10 +58,10 @@ rule Banking_IcedID {
     strings:
         $icedid = "IcedID" ascii nocase
         $bokbot = "BokBot" ascii nocase
-        $loader = "loader" ascii nocase
-        $hook = "hook" ascii nocase
-        $ssl = "ssl" ascii nocase
-        $browser = "browser" ascii nocase
+        // UNUSED: $loader = "loader" ascii nocase
+        // UNUSED: $hook = "hook" ascii nocase
+        // UNUSED: $ssl = "ssl" ascii nocase
+        // UNUSED: $browser = "browser" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($icedid, $bokbot))
 }
@@ -74,9 +74,9 @@ rule Banking_Dridex {
         $dridex = "Dridex" ascii nocase
         $bugat = "Bugat" ascii nocase
         $cridex = "Cridex" ascii nocase
-        $botnet = "botnet" ascii nocase
-        $config = "config" ascii nocase
-        $inject = "inject" ascii nocase
+        // UNUSED: $botnet = "botnet" ascii nocase
+        // UNUSED: $config = "config" ascii nocase
+        // UNUSED: $inject = "inject" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($dridex, $bugat, $cridex))
 }
@@ -105,8 +105,8 @@ rule Banking_Ursnif_Gozi {
         $gozi = "Gozi" ascii nocase
         $isfb = "ISFB" ascii nocase
         $dreambot = "Dreambot" ascii nocase
-        $client32 = "client32" ascii
-        $serpent = "serpent" ascii nocase
+        // UNUSED: $client32 = "client32" ascii
+        // UNUSED: $serpent = "serpent" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($ursnif, $gozi, $isfb, $dreambot))
 }
@@ -120,8 +120,8 @@ rule Banking_Tinba {
         $tiny = "TinyBanker" ascii nocase
         $kins = "Kins" ascii nocase
         $zusy = "Zusy" ascii nocase
-        $small = "small" ascii nocase
-        $inject = "inject" ascii nocase
+        // UNUSED: $small = "small" ascii nocase
+        // UNUSED: $inject = "inject" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($tinba, $tiny, $kins, $zusy))
 }
@@ -134,9 +134,9 @@ rule Banking_Vawtrak {
         $vawtrak = "Vawtrak" ascii nocase
         $neverquest = "Neverquest" ascii nocase
         $snifula = "Snifula" ascii nocase
-        $inject = "inject" ascii nocase
-        $form = "form" ascii nocase
-        $grab = "grab" ascii nocase
+        // UNUSED: $inject = "inject" ascii nocase
+        // UNUSED: $form = "form" ascii nocase
+        // UNUSED: $grab = "grab" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($vawtrak, $neverquest, $snifula))
 }
@@ -150,7 +150,7 @@ rule Banking_Kronos {
         $osiris = "Osiris" ascii nocase
         $form = "formgrabber" ascii nocase
         $webinject = "webinject" ascii nocase
-        $vnc = "VNC" ascii
+        // UNUSED: $vnc = "VNC" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($kronos, $osiris) or ($form and $webinject))
 }
@@ -163,8 +163,8 @@ rule Banking_Panda_Banker {
         $panda = "Panda" ascii nocase
         $zeus = "Zeus" ascii nocase
         $banker = "Banker" ascii nocase
-        $webinject = "webinject" ascii nocase
-        $form = "form" ascii nocase
+        // UNUSED: $webinject = "webinject" ascii nocase
+        // UNUSED: $form = "form" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($panda and ($zeus or $banker))
 }
@@ -176,10 +176,10 @@ rule Banking_Ramnit {
     strings:
         $ramnit = "Ramnit" ascii nocase
         $nimnul = "Nimnul" ascii nocase
-        $worm = "worm" ascii nocase
-        $ftp = "FTP" ascii
-        $grab = "grab" ascii nocase
-        $cookie = "cookie" ascii nocase
+        // UNUSED: $worm = "worm" ascii nocase
+        // UNUSED: $ftp = "FTP" ascii
+        // UNUSED: $grab = "grab" ascii nocase
+        // UNUSED: $cookie = "cookie" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($ramnit, $nimnul))
 }
@@ -191,9 +191,9 @@ rule Banking_Shylock {
     strings:
         $shylock = "Shylock" ascii nocase
         $caphaw = "Caphaw" ascii nocase
-        $skype = "Skype" ascii
-        $spread = "spread" ascii nocase
-        $hook = "hook" ascii nocase
+        // UNUSED: $skype = "Skype" ascii
+        // UNUSED: $spread = "spread" ascii nocase
+        // UNUSED: $hook = "hook" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($shylock, $caphaw))
 }
@@ -205,9 +205,9 @@ rule Banking_Sphinx {
     strings:
         $sphinx = "Sphinx" ascii nocase
         $zloader = "ZLoader" ascii nocase
-        $zeus = "Zeus" ascii nocase
-        $webinject = "webinject" ascii nocase
-        $grab = "grab" ascii nocase
+        // UNUSED: $zeus = "Zeus" ascii nocase
+        // UNUSED: $webinject = "webinject" ascii nocase
+        // UNUSED: $grab = "grab" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($sphinx, $zloader))
 }
@@ -218,7 +218,7 @@ rule Banking_Webinject {
         severity = "high"
     strings:
         $webinject = "webinject" ascii nocase
-        $inject = "inject" ascii nocase
+        // UNUSED: $inject = "inject" ascii nocase
         $set_url = "set_url" ascii
         $data_before = "data_before" ascii
         $data_after = "data_after" ascii
@@ -252,9 +252,9 @@ rule Banking_Man_in_Browser {
         $browser = "browser" ascii nocase
         $hook = "hook" ascii nocase
         $inject = "inject" ascii nocase
-        $chrome = "chrome" ascii nocase
-        $firefox = "firefox" ascii nocase
-        $ie = "iexplore" ascii nocase
+        // UNUSED: $chrome = "chrome" ascii nocase
+        // UNUSED: $firefox = "firefox" ascii nocase
+        // UNUSED: $ie = "iexplore" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($mitb or ($browser and $hook and $inject))
 }
@@ -266,7 +266,7 @@ rule Banking_ATS_Engine {
     strings:
         $ats = "ATS" ascii
         $transfer = "transfer" ascii nocase
-        $automated = "automated" ascii nocase
+        // UNUSED: $automated = "automated" ascii nocase
         $account = "account" ascii nocase
         $balance = "balance" ascii nocase
         $amount = "amount" ascii nocase
@@ -284,7 +284,7 @@ rule Banking_POS_Malware {
         $track1 = "Track1" ascii
         $track2 = "Track2" ascii
         $pan = "PAN" ascii
-        $magstripe = "magstripe" ascii nocase
+        // UNUSED: $magstripe = "magstripe" ascii nocase
         $ram = "RAM" ascii
         $scrape = "scrape" ascii nocase
         $card = "card" ascii nocase

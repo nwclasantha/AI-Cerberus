@@ -140,7 +140,7 @@ rule Insider_Screenshot_Tool {
         $screen = "screen" ascii nocase
         $shot = "shot" ascii nocase
         $capture = "capture" ascii nocase
-        $desktop = "desktop" ascii nocase
+        // UNUSED: $desktop = "desktop" ascii nocase
         $auto = "auto" ascii nocase
         $interval = "interval" ascii nocase
         $save = "save" ascii nocase

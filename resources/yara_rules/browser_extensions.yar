@@ -150,8 +150,8 @@ rule BrowserExt_History_Tracker
         $history3 = "getVisits" ascii
         $url1 = "chrome.tabs.onUpdated" ascii
         $url2 = "browser.tabs.onUpdated" ascii
-        $track1 = "tracking" ascii nocase
-        $track2 = "analytics" ascii nocase
+        // UNUSED: $track1 = "tracking" ascii nocase
+        // UNUSED: $track2 = "analytics" ascii nocase
         $send = "beacon" ascii nocase
 
     condition:
@@ -198,8 +198,8 @@ rule BrowserExt_Search_Hijacker
         $hijack2 = "newtab" ascii
         $redirect1 = "window.location" ascii
         $redirect2 = "chrome.tabs.update" ascii
-        $domain1 = "search.yahoo" ascii
-        $domain2 = "bing.com" ascii
+        // UNUSED: $domain1 = "search.yahoo" ascii
+        // UNUSED: $domain2 = "bing.com" ascii
 
     condition:
         (2 of ($search*) and 1 of ($hijack*)) or
@@ -339,7 +339,7 @@ rule BrowserExt_Notification_Spam
         $spam2 = "congratulations" ascii nocase
         $spam3 = "winner" ascii nocase
         $repeat = "setInterval" ascii
-        $random = "Math.random()" ascii
+        // UNUSED: $random = "Math.random()" ascii
 
     condition:
         (1 of ($notif*) and 2 of ($spam*)) or
@@ -404,8 +404,8 @@ rule BrowserExt_Tab_Nabbing
 
     strings:
         $tab1 = "window.opener" ascii
-        $tab2 = "_blank" ascii
-        $tab3 = "noopener" ascii
+        // UNUSED: $tab2 = "_blank" ascii
+        // UNUSED: $tab3 = "noopener" ascii
         $nab1 = "opener.location" ascii
         $nab2 = "parent.location" ascii
         $phish1 = "login" ascii nocase

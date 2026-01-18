@@ -46,9 +46,9 @@ rule Injection_SetWindowsHookEx {
         $api3 = "LoadLibraryA" ascii
         $api4 = "LoadLibraryW" ascii
         $api5 = "GetProcAddress" ascii
-        $hook1 = { 0D 00 00 00 }  // WH_KEYBOARD_LL
-        $hook2 = { 0E 00 00 00 }  // WH_MOUSE_LL
-        $hook3 = { 05 00 00 00 }  // WH_CBT
+        // UNUSED: $hook1 = { 0D 00 00 00 }  // WH_KEYBOARD_LL
+        // UNUSED: $hook2 = { 0E 00 00 00 }  // WH_MOUSE_LL
+        // UNUSED: $hook3 = { 05 00 00 00 }  // WH_CBT
     condition:
         uint16(0) == 0x5A4D and
         (any of ($api1, $api2)) and (any of ($api3, $api4) and $api5)
@@ -84,7 +84,7 @@ rule Injection_Process_Hollowing {
         $api7 = "SetThreadContext" ascii
         $api8 = "ResumeThread" ascii
         $api9 = "GetThreadContext" ascii
-        $suspend = { 04 00 00 00 }  // CREATE_SUSPENDED
+        // UNUSED: $suspend = { 04 00 00 00 }  // CREATE_SUSPENDED
     condition:
         uint16(0) == 0x5A4D and
         (any of ($api1, $api2)) and (any of ($api3, $api4)) and
@@ -117,7 +117,7 @@ rule Injection_AtomBombing {
         $api4 = "GlobalGetAtomNameW" ascii
         $api5 = "NtQueueApcThread" ascii
         $api6 = "QueueUserAPC" ascii
-        $api7 = "ntdll" ascii
+        // UNUSED: $api7 = "ntdll" ascii
     condition:
         uint16(0) == 0x5A4D and
         (any of ($api1, $api2)) and (any of ($api3, $api4)) and (any of ($api5, $api6))
@@ -135,7 +135,7 @@ rule Injection_Early_Bird {
         $api5 = "QueueUserAPC" ascii
         $api6 = "NtQueueApcThread" ascii
         $api7 = "ResumeThread" ascii
-        $suspend = "CREATE_SUSPENDED" ascii
+        // UNUSED: $suspend = "CREATE_SUSPENDED" ascii
     condition:
         uint16(0) == 0x5A4D and
         (any of ($api1, $api2)) and $api3 and $api4 and (any of ($api5, $api6)) and $api7

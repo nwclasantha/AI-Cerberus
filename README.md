@@ -1,7 +1,5 @@
 # AI-Cerberus
 
-<img width="1536" height="1024" alt="532e954a-4135-4b5c-8834-766eec7748ac" src="https://github.com/user-attachments/assets/2fbfa2e6-97b1-4563-a81a-e4aeb78947ba" />
-
 ## The Three-Headed Guardian Against Malicious Code
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
@@ -12,6 +10,21 @@
 ---
 
 **AI-Cerberus** is an enterprise-grade malware analysis platform featuring multi-layered threat detection powered by artificial intelligence. Like the mythological three-headed guardian dog, it employs three independent detection engines to ensure no threat escapes.
+
+```
+     ╔═══════════════════════════════════════════════════════════════╗
+     ║                                                               ║
+     ║     ██████╗███████╗██████╗ ██████╗ ███████╗██████╗ ██╗   ██╗  ║
+     ║    ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██║   ██║  ║
+     ║    ██║     █████╗  ██████╔╝██████╔╝█████╗  ██████╔╝██║   ██║  ║
+     ║    ██║     ██╔══╝  ██╔══██╗██╔══██╗██╔══╝  ██╔══██╗██║   ██║  ║
+     ║    ╚██████╗███████╗██║  ██║██████╔╝███████╗██║  ██║╚██████╔╝  ║
+     ║     ╚═════╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝   ║
+     ║                                                               ║
+     ║              AI-Powered Malware Analysis Platform             ║
+     ║                                                               ║
+     ╚═══════════════════════════════════════════════════════════════╝
+```
 
 ---
 
@@ -35,8 +48,6 @@
 
 ## Features
 
-<img width="1386" height="682" alt="image" src="https://github.com/user-attachments/assets/0f9e3d78-101a-47d0-bcb6-379978c67042" />
-
 ### Three Detection Heads
 
 | Head | Engine | Color | Description |
@@ -46,8 +57,6 @@
 | **BEH** | Behavioral Analysis | Orange | Runtime behavior profiling & API analysis |
 
 ### Core Capabilities
-
-<img width="1356" height="691" alt="image" src="https://github.com/user-attachments/assets/2a388118-c961-4512-924b-861cffd7acd2" />
 
 - **Multi-Format Binary Analysis** - PE, ELF, Mach-O support
 - **Advanced Disassembly** - x86, x64, ARM with suspicious code highlighting
@@ -81,8 +90,6 @@
 ---
 
 ## Architecture Overview
-
-<img width="1371" height="646" alt="image" src="https://github.com/user-attachments/assets/4dbac0de-c5c9-4326-b08a-a2af917d4998" />
 
 ### High-Level Architecture
 
@@ -164,8 +171,6 @@
 ---
 
 ## System Architecture
-
-<img width="1390" height="672" alt="image" src="https://github.com/user-attachments/assets/1d0483c6-d583-4a3d-8f96-680538f53060" />
 
 ### Directory Structure
 
@@ -300,8 +305,6 @@ MalwareAnalyzer/
 
 #### PE Analyzer (`pe_analyzer.py`)
 
-<img width="1363" height="683" alt="image" src="https://github.com/user-attachments/assets/ba7cce23-4670-4ff7-a364-4a1b78f0f29b" />
-
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        PE FILE ANALYSIS                              │
@@ -385,8 +388,6 @@ MalwareAnalyzer/
 ```
 
 #### Disassembler (`disassembler.py`)
-
-<img width="1387" height="706" alt="image" src="https://github.com/user-attachments/assets/ab8b52bd-522f-4d4f-850a-5b14e357c8f2" />
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -1107,7 +1108,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 - **Project**: AI-Cerberus
-- **Author**: NW Chanaka Lasantha
+- **Author**: Your Name
+- **Email**: your.email@example.com
 - **GitHub**: [github.com/yourusername/ai-cerberus](https://github.com/yourusername/ai-cerberus)
 
 ---

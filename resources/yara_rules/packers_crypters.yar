@@ -3,6 +3,8 @@
     Executable obfuscation, protection, and packing tools
 */
 
+import "math"
+
 rule Packer_UPX {
     meta:
         description = "UPX packed executable"

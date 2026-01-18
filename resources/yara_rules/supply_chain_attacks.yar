@@ -50,7 +50,7 @@ rule SupplyChain_RubyGems_Malicious {
         severity = "critical"
     strings:
         $gem = ".gemspec" ascii
-        $ext = "extensions" ascii
+        // UNUSED: $ext = "extensions" ascii
         $hook1 = "post_install" ascii
         $hook2 = "pre_install" ascii
         $exec1 = "system(" ascii
@@ -73,7 +73,7 @@ rule SupplyChain_Maven_Malicious {
         $exec2 = "Runtime.getRuntime" ascii
         $exec3 = "ProcessBuilder" ascii
         $net = "URLConnection" ascii
-        $phase = "<phase>compile</phase>" ascii
+        // UNUSED: $phase = "<phase>compile</phase>" ascii
     condition:
         $pom and $plugin and (any of ($exec*) or $net)
 }
@@ -328,7 +328,7 @@ rule SupplyChain_VS_Extension_Malicious {
         $exec1 = "child_process" ascii
         $exec2 = "exec(" ascii
         $net = "http.request" ascii
-        $telemetry = "telemetry" ascii nocase
+        // UNUSED: $telemetry = "telemetry" ascii nocase
     condition:
         ($vsix or $manifest) and $js and (any of ($exec*) or $net)
 }
@@ -363,7 +363,7 @@ rule SupplyChain_Browser_Extension_Malicious {
         $perm3 = "cookies" ascii
         $inject = "executeScript" ascii
         $storage = "storage" ascii
-        $remote = "remote" ascii nocase
+        // UNUSED: $remote = "remote" ascii nocase
     condition:
         $manifest and ($content or $background) and (2 of ($perm*)) and ($inject or $storage)
 }

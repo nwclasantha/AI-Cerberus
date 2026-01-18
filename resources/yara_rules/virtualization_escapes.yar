@@ -27,7 +27,7 @@ rule VM_VMware_Escape {
         $vmx = "vmx" ascii nocase
         $backdoor = "backdoor" ascii nocase
         $rpc = "VMware RPC" ascii
-        $tools = "vmtools" ascii nocase
+        // UNUSED: $tools = "vmtools" ascii nocase
         $exploit = "exploit" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($vmware or $vmx) and any of ($backdoor, $rpc, $exploit)

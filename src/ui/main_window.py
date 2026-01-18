@@ -31,6 +31,7 @@ from ..core import (
     HashCalculator, EntropyAnalyzer, StringExtractor,
     PEAnalyzer, YaraEngine, BehaviorAnalyzer, Disassembler,
 )
+from ..core.false_positive_prevention import get_false_positive_prevention
 from ..ml import MalwareClassifier, get_auto_trainer
 from ..integrations import VirusTotalClient
 from ..database import get_repository
@@ -147,7 +148,7 @@ class AnalysisWorker(QRunnable):
 
             # Disassembly
             self.signals.progress.emit(80, "Disassembling...")
-            disasm = Disassembler(max_instructions=50000)  # FIXED: 1000 -> 50000 (50x more!)
+            disasm = Disassembler(max_instructions=200000)  # Maximum coverage for full disassembly
             arch = results.get("architecture", "x64")
 
             # Get entry point offset from PE analysis (convert RVA to file offset)
@@ -226,26 +227,97 @@ class AnalysisWorker(QRunnable):
         - VirusTotal: 0-20 points (detection ratio)
         - Strings: 0-10 points (suspicious strings)
         - PE structure: 0-10 points (suspicious PE characteristics)
+        - Legitimacy: -30 to -50 points (signed, known good)
         """
         score = 0
 
+        # FALSE POSITIVE PREVENTION: Check file legitimacy FIRST
+        # Signed legitimate software should NOT be flagged as malware
+        fp_prevention = get_false_positive_prevention()
+        legitimacy_result = None
+        is_legitimate = False
+
+        try:
+            file_path = self.file_path
+            file_hash = results.get("hashes", {}).get("sha256")
+            file_data = results.get("_raw_file_data")
+
+            legitimacy_result = fp_prevention.check_legitimacy(
+                file_path, file_hash, file_data
+            )
+            is_legitimate = legitimacy_result.is_legitimate
+
+            # Store legitimacy info in results for display
+            results["legitimacy"] = {
+                "is_legitimate": legitimacy_result.is_legitimate,
+                "confidence": legitimacy_result.confidence,
+                "reason": legitimacy_result.reason,
+                "has_valid_signature": legitimacy_result.has_valid_signature,
+                "signature_verified": legitimacy_result.signature_verified_cryptographically,
+                "publisher": legitimacy_result.publisher_name,
+            }
+
+            if is_legitimate:
+                logger.info(f"Legitimate file detected: {legitimacy_result.reason}")
+        except Exception as e:
+            logger.debug(f"Legitimacy check failed: {e}")
+
         # YARA matches (signature-based detection)
+        # IMPORTANT: Reduce YARA impact for legitimately signed software
+        # Microsoft-signed tools like TCPView shouldn't be flagged by generic rules
         yara_matches = results.get("yara_matches", [])
+        raw_yara_score = 0
         for match in yara_matches:
             severity = match.get("severity", "medium")
             if severity == "critical":
-                score += 25
+                raw_yara_score += 25
             elif severity == "high":
-                score += 15
+                raw_yara_score += 15
             elif severity == "medium":
-                score += 8
+                raw_yara_score += 8
 
-        # Behavior indicators (FIXED: increased from 0.5 to 0.7 multiplier)
-        # Behavioral analysis can detect injection, persistence, network, etc.
-        # This is critical for detecting backdoors that don't match YARA rules
+        # Reduce YARA score for legitimate signed software
+        # CRITICAL: Cap YARA score for signed files - don't just reduce percentage
+        # Microsoft tools like TCPView can trigger 2000+ YARA points from generic rules
+        if is_legitimate and legitimacy_result:
+            if legitimacy_result.signature_verified_cryptographically:
+                # Cryptographically verified - CAP at 5 points max (trust signature!)
+                yara_score = min(5, raw_yara_score * 0.01)
+                logger.info(f"Capping YARA score for verified signed file: {raw_yara_score} -> {yara_score}")
+            elif legitimacy_result.has_valid_signature:
+                # Signed but not verified - cap at 15 points
+                yara_score = min(15, raw_yara_score * 0.05)
+            else:
+                # Other legitimacy - cap at 30 points
+                yara_score = min(30, raw_yara_score * 0.1)
+        else:
+            yara_score = raw_yara_score  # Full YARA score for unsigned/suspicious files
+
+        score += yara_score
+
+        # Behavior indicators - REDUCED for legitimate signed software
+        # Legitimate tools like PuTTY, browsers, etc. have network + shell APIs
+        # but are NOT malware. Don't penalize them heavily.
         behavior = results.get("behavior", {})
         risk = behavior.get("risk", {})
-        behavioral_score = risk.get("score", 0) * 0.7  # Use 70% of behavioral score
+        raw_behavioral_score = risk.get("score", 0)
+
+        # If file is legitimately signed, reduce behavioral penalty significantly
+        if is_legitimate and legitimacy_result:
+            if legitimacy_result.signature_verified_cryptographically:
+                # Cryptographically verified signature - minimal behavioral penalty
+                behavioral_score = raw_behavioral_score * 0.1  # Only 10%
+                logger.info(f"Reducing behavioral score for signed file: {raw_behavioral_score} -> {behavioral_score}")
+            elif legitimacy_result.has_valid_signature:
+                # Signed but not verified - moderate reduction
+                behavioral_score = raw_behavioral_score * 0.3  # 30%
+            else:
+                # Other legitimacy indicators - slight reduction
+                behavioral_score = raw_behavioral_score * 0.5  # 50%
+        else:
+            # Not legitimate - full behavioral scoring
+            behavioral_score = raw_behavioral_score * 0.7  # 70%
+
         score += behavioral_score
 
         # Entropy analysis (packing/encryption detection)
@@ -304,8 +376,29 @@ class AnalysisWorker(QRunnable):
             if pe_info.get("entry_point_suspicious", False):
                 score += 5
 
-        # Cap at 100 max
-        score = min(100, score)
+        # LEGITIMACY BONUS: Reduce score for legitimately signed software
+        # This is CRITICAL to prevent false positives on tools like PuTTY, browsers, etc.
+        if is_legitimate and legitimacy_result:
+            legitimacy_reduction = 0
+
+            if legitimacy_result.signature_verified_cryptographically:
+                # Cryptographically verified = very trustworthy
+                legitimacy_reduction = 50
+            elif legitimacy_result.has_valid_signature:
+                # Signed but not verified
+                legitimacy_reduction = 30
+            elif legitimacy_result.confidence >= 0.7:
+                # High legitimacy confidence from other factors
+                legitimacy_reduction = 20
+
+            # Apply reduction
+            if legitimacy_reduction > 0:
+                old_score = score
+                score = max(0, score - legitimacy_reduction)
+                logger.info(f"Legitimacy reduction: {old_score} -> {score} (-{legitimacy_reduction})")
+
+        # Cap at 100 max (and 0 min)
+        score = max(0, min(100, score))
 
         return {
             "score": round(score, 1),

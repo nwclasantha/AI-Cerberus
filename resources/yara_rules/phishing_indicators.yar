@@ -78,7 +78,7 @@ rule Phishing_Banking_Page {
         $bank = "bank" ascii nocase
         $account = "account" ascii nocase
         $login = "login" ascii nocase
-        $secure = "secure" ascii nocase
+        // UNUSED: $secure = "secure" ascii nocase
         $verify = "verify" ascii nocase
         $card = "card" ascii nocase
         $cvv = "cvv" ascii nocase
@@ -98,7 +98,7 @@ rule Phishing_PayPal_Clone {
         $password = "password" ascii nocase
         $card = "card" ascii nocase
         $verify = "verify" ascii nocase
-        $account = "account" ascii nocase
+        // UNUSED: $account = "account" ascii nocase
         $form = "<form" ascii nocase
     condition:
         $paypal and ($login or $verify) and ($password or $card) and $form
@@ -113,8 +113,8 @@ rule Phishing_Amazon_Clone {
         $signin = "sign" ascii nocase
         $password = "password" ascii nocase
         $email = "email" ascii nocase
-        $account = "account" ascii nocase
-        $prime = "prime" ascii nocase
+        // UNUSED: $account = "account" ascii nocase
+        // UNUSED: $prime = "prime" ascii nocase
         $form = "<form" ascii nocase
     condition:
         $amazon and $signin and ($password or $email) and $form
@@ -130,7 +130,7 @@ rule Phishing_Apple_Clone {
         $appleid = "appleid" ascii nocase
         $signin = "sign" ascii nocase
         $password = "password" ascii nocase
-        $verify = "verify" ascii nocase
+        // UNUSED: $verify = "verify" ascii nocase
         $form = "<form" ascii nocase
     condition:
         (any of ($apple, $icloud, $appleid)) and $signin and $password and $form
@@ -145,7 +145,7 @@ rule Phishing_Facebook_Clone {
         $fb = "fb.com" ascii nocase
         $login = "login" ascii nocase
         $password = "password" ascii nocase
-        $email = "email" ascii nocase
+        // UNUSED: $email = "email" ascii nocase
         $form = "<form" ascii nocase
     condition:
         (any of ($facebook, $fb)) and $login and $password and $form
@@ -159,8 +159,8 @@ rule Phishing_LinkedIn_Clone {
         $linkedin = "linkedin" ascii nocase
         $signin = "sign" ascii nocase
         $password = "password" ascii nocase
-        $email = "email" ascii nocase
-        $connect = "connect" ascii nocase
+        // UNUSED: $email = "email" ascii nocase
+        // UNUSED: $connect = "connect" ascii nocase
         $form = "<form" ascii nocase
     condition:
         $linkedin and $signin and $password and $form
@@ -187,7 +187,7 @@ rule Phishing_Discord_Webhook {
         severity = "critical"
     strings:
         $discord = "discord.com/api/webhooks" ascii
-        $webhook = "webhook" ascii nocase
+        // UNUSED: $webhook = "webhook" ascii nocase
         $embed = "embeds" ascii
         $content = "content" ascii
         $password = "password" ascii nocase
@@ -284,7 +284,7 @@ rule Phishing_Captcha_Bypass {
         $human = "human" ascii nocase
         $robot = "robot" ascii nocase
         $form = "<form" ascii nocase
-        $password = "password" ascii nocase
+        // UNUSED: $password = "password" ascii nocase
     condition:
         (any of ($captcha, $recaptcha)) and (any of ($verify, $human, $robot)) and $form
 }
@@ -317,7 +317,7 @@ rule Phishing_MFA_Bypass {
         $authenticator = "authenticator" ascii nocase
         $code = "code" ascii nocase
         $verify = "verify" ascii nocase
-        $proxy = "proxy" ascii nocase
+        // UNUSED: $proxy = "proxy" ascii nocase
     condition:
         (any of ($mfa, $2fa, $otp, $totp, $authenticator)) and ($code or $verify)
 }

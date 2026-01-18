@@ -30,7 +30,7 @@ rule NK_Kimsuky {
         $s4 = "AppleSeed" ascii nocase
         $s5 = "FlowerPower" ascii nocase
         $s6 = "GOLDDRAGON" ascii nocase
-        $korea = "korea" ascii nocase
+        // UNUSED: $korea = "korea" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -61,7 +61,7 @@ rule NK_APT38 {
         $s3 = "CROWDEDFLOUNDER" ascii nocase
         $swift = "SWIFT" ascii
         $bank = "bank" ascii nocase
-        $atm = "ATM" ascii
+        // UNUSED: $atm = "ATM" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($swift and $bank))
 }
@@ -75,8 +75,8 @@ rule NK_Andariel {
         $s2 = "Maui" ascii nocase
         $s3 = "TigerRAT" ascii nocase
         $s4 = "MagicRAT" ascii nocase
-        $ransom = "ransom" ascii nocase
-        $healthcare = "health" ascii nocase
+        // UNUSED: $ransom = "ransom" ascii nocase
+        // UNUSED: $healthcare = "health" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -132,9 +132,9 @@ rule NK_BADCALL {
     strings:
         $s1 = "BADCALL" ascii nocase
         $s2 = "HARDRAIN" ascii nocase
-        $proxy = "proxy" ascii nocase
+        // UNUSED: $proxy = "proxy" ascii nocase
         $ssl = "SSL" ascii
-        $fake_tls = { 16 03 01 }  // TLS header
+        // UNUSED: $fake_tls = { 16 03 01 }  // TLS header
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -163,7 +163,7 @@ rule NK_SHARPKNOT {
         $mbr = "\\\\.\\\\" ascii
         $physdisk = "PhysicalDrive" ascii
         $wipe = { 00 00 00 00 00 00 00 00 }
-        $service = "Service" ascii
+        // UNUSED: $service = "Service" ascii
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($mbr and $physdisk and $wipe))
 }
@@ -189,7 +189,7 @@ rule NK_BRAMBUL {
     strings:
         $s1 = "BRAMBUL" ascii nocase
         $smb = "SMB" ascii
-        $worm = "worm" ascii nocase
+        // UNUSED: $worm = "worm" ascii nocase
         $admin = "ADMIN$" ascii
         $ipc = "IPC$" ascii
         $brute = "brute" ascii nocase
@@ -222,8 +222,8 @@ rule NK_Gopuram {
         $s2 = "3CX" ascii nocase
         $s3 = "DesktopApp" ascii
         $supply = "supply" ascii nocase
-        $chain = "chain" ascii nocase
-        $update = "update" ascii nocase
+        // UNUSED: $chain = "chain" ascii nocase
+        // UNUSED: $update = "update" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -236,8 +236,8 @@ rule NK_ELECTRICFISH {
         $s1 = "ELECTRICFISH" ascii nocase
         $tunnel = "tunnel" ascii nocase
         $proxy = "proxy" ascii nocase
-        $socks = "SOCKS" ascii
-        $connect = "CONNECT" ascii
+        // UNUSED: $socks = "SOCKS" ascii
+        // UNUSED: $connect = "CONNECT" ascii
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($tunnel and $proxy))
 }
@@ -249,9 +249,9 @@ rule NK_HOTCROISSANT {
     strings:
         $s1 = "HOTCROISSANT" ascii nocase
         $s2 = "RIFDOOR" ascii nocase
-        $beacon = "beacon" ascii nocase
-        $c2 = "c2" ascii nocase
-        $http = "HTTP" ascii
+        // UNUSED: $beacon = "beacon" ascii nocase
+        // UNUSED: $c2 = "c2" ascii nocase
+        // UNUSED: $http = "HTTP" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -280,7 +280,7 @@ rule NK_BLINDINGCAN {
         $cmd = "cmd.exe" ascii
         $ps = "powershell" ascii nocase
         $rat = "RAT" ascii
-        $remote = "remote" ascii nocase
+        // UNUSED: $remote = "remote" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($cmd and $ps and $rat))
 }
@@ -293,8 +293,8 @@ rule NK_PEBBLEDASH {
         $s1 = "PEBBLEDASH" ascii nocase
         $implant = "implant" ascii nocase
         $c2 = "http" ascii nocase
-        $rc4 = "RC4" ascii
-        $xor = "xor" ascii nocase
+        // UNUSED: $rc4 = "RC4" ascii
+        // UNUSED: $xor = "xor" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($implant and $c2))
 }
@@ -308,8 +308,8 @@ rule NK_H0lyGh0st {
         $s2 = "HolyGhost" ascii nocase
         $s3 = "SiennaPurple" ascii
         $s4 = "SiennaBlue" ascii
-        $ransom = "ransom" ascii nocase
-        $encrypt = "encrypt" ascii nocase
+        // UNUSED: $ransom = "ransom" ascii nocase
+        // UNUSED: $encrypt = "encrypt" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }

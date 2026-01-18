@@ -88,10 +88,10 @@ rule Credential_Pypykatz {
         severity = "critical"
     strings:
         $pypykatz = "pypykatz" ascii nocase
-        $python = "python" ascii nocase
+        // UNUSED: $python = "python" ascii nocase
         $lsass = "lsass" ascii nocase
         $minidump = "minidump" ascii nocase
-        $sekurlsa = "sekurlsa" ascii
+        // UNUSED: $sekurlsa = "sekurlsa" ascii
     condition:
         uint16(0) == 0x5A4D and ($pypykatz or ($lsass and $minidump))
 }
@@ -203,7 +203,7 @@ rule Credential_Email_Stealer {
         $pop3 = "POP3" ascii
         $password = "Password" ascii
         $account = "Account" ascii
-        $registry = "Software\\Microsoft\\Office" ascii
+        // UNUSED: $registry = "Software\\Microsoft\\Office" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($outlook, $thunderbird)) and (any of ($imap, $smtp, $pop3)) and any of ($password, $account)
 }
@@ -282,7 +282,7 @@ rule Credential_Keylogger_Generic {
         $api3 = "GetAsyncKeyState" ascii
         $api4 = "GetKeyState" ascii
         $api5 = "GetKeyboardState" ascii
-        $hook = "WH_KEYBOARD" ascii
+        // UNUSED: $hook = "WH_KEYBOARD" ascii
         $log = "log" ascii nocase
         $key = "key" ascii nocase
     condition:

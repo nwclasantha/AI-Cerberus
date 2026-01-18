@@ -11,7 +11,7 @@ rule PrivEsc_UAC_Bypass_Fodhelper {
         $fodhelper = "fodhelper.exe" ascii nocase
         $reg1 = "Software\\Classes\\ms-settings\\shell\\open\\command" ascii nocase
         $reg2 = "DelegateExecute" ascii
-        $api = "ShellExecute" ascii
+        // UNUSED: $api = "ShellExecute" ascii
     condition:
         uint16(0) == 0x5A4D and $fodhelper and any of ($reg*)
 }
@@ -24,7 +24,7 @@ rule PrivEsc_UAC_Bypass_Eventvwr {
         $eventvwr = "eventvwr.exe" ascii nocase
         $reg1 = "Software\\Classes\\mscfile\\shell\\open\\command" ascii nocase
         $msc = ".msc" ascii
-        $api = "ShellExecute" ascii
+        // UNUSED: $api = "ShellExecute" ascii
     condition:
         uint16(0) == 0x5A4D and $eventvwr and ($reg1 or $msc)
 }
@@ -50,7 +50,7 @@ rule PrivEsc_UAC_Bypass_ComputerDefaults {
     strings:
         $comp = "computerdefaults.exe" ascii nocase
         $reg = "Software\\Classes\\ms-settings\\shell\\open\\command" ascii nocase
-        $delegate = "DelegateExecute" ascii
+        // UNUSED: $delegate = "DelegateExecute" ascii
     condition:
         uint16(0) == 0x5A4D and $comp and $reg
 }
@@ -94,8 +94,8 @@ rule PrivEsc_Named_Pipe_Impersonation {
         $api2 = "CreateNamedPipeW" ascii
         $api3 = "ConnectNamedPipe" ascii
         $api4 = "ImpersonateNamedPipeClient" ascii
-        $pipe = "\\\\.\\pipe\\" ascii
-        $spoof = "spoofpipe" ascii nocase
+        // UNUSED: $pipe = "\\\\.\\pipe\\" ascii
+        // UNUSED: $spoof = "spoofpipe" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         ((any of ($api1, $api2)) and $api3 and $api4)
@@ -112,7 +112,7 @@ rule PrivEsc_Service_Permissions {
         $api4 = "OpenServiceW" ascii
         $write = "SERVICE_CHANGE_CONFIG" ascii
         $path = "binPath" ascii nocase
-        $auto = "auto" ascii nocase
+        // UNUSED: $auto = "auto" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         ((any of ($api1, $api2)) and (any of ($api3, $api4))) or ($write and $path)
@@ -127,7 +127,7 @@ rule PrivEsc_Unquoted_Service_Path {
         $image = "ImagePath" ascii
         $program = "Program Files" ascii
         $space = " " ascii
-        $api = "RegQueryValue" ascii
+        // UNUSED: $api = "RegQueryValue" ascii
     condition:
         uint16(0) == 0x5A4D and $reg and $image and $program and $space
 }
@@ -142,7 +142,7 @@ rule PrivEsc_DLL_Hijack_System {
         $copy1 = "CopyFileA" ascii
         $copy2 = "CopyFileW" ascii
         $dll = ".dll" ascii nocase
-        $known = /version\.dll|userenv\.dll|dwmapi\.dll/ ascii nocase
+        // UNUSED: $known = /version\.dll|userenv\.dll|dwmapi\.dll/ ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         (any of ($sys*)) and (any of ($copy*)) and $dll
@@ -158,7 +158,7 @@ rule PrivEsc_SeDebugPrivilege {
         $api2 = "AdjustTokenPrivileges" ascii
         $api3 = "OpenProcessToken" ascii
         $lsass = "lsass.exe" ascii nocase
-        $debug = "debug" ascii nocase
+        // UNUSED: $debug = "debug" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         $priv and (all of ($api*) or $lsass)
@@ -189,7 +189,7 @@ rule PrivEsc_ALPC_BITS {
         $alpc1 = "NtAlpcConnectPort" ascii
         $alpc2 = "AlpcMaxAllowedMessageLength" ascii
         $bits = "BITS" ascii
-        $com = "Background Intelligent Transfer" ascii
+        // UNUSED: $com = "Background Intelligent Transfer" ascii
         $api = "CoCreateInstance" ascii
     condition:
         uint16(0) == 0x5A4D and
@@ -205,7 +205,7 @@ rule PrivEsc_PrintNightmare {
         $print2 = "AddPrinterDriverExW" ascii
         $spooler = "spoolsv.exe" ascii nocase
         $driver = "pDriverPath" ascii
-        $remote = "\\\\" ascii
+        // UNUSED: $remote = "\\\\" ascii
         $dll = ".dll" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
@@ -218,7 +218,7 @@ rule PrivEsc_Kernel_Exploit {
         severity = "critical"
     strings:
         $token = "SYSTEM" ascii
-        $api1 = "NtQuerySystemInformation" ascii
+        // UNUSED: $api1 = "NtQuerySystemInformation" ascii
         $api2 = "DeviceIoControl" ascii
         $driver = "\\\\.\\{" ascii
         $shellcode = { 65 48 8B 04 25 88 01 00 00 }  // PEB access

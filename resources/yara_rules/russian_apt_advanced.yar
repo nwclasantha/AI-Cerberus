@@ -81,8 +81,8 @@ rule Russian_Gamaredon {
         $s3 = "QUOTASPEC" ascii nocase
         $s4 = "EvilGnome" ascii nocase
         $s5 = "Shuckworm" ascii nocase
-        $ukraine = "ukraine" ascii nocase
-        $lnk = ".lnk" ascii
+        // UNUSED: $ukraine = "ukraine" ascii nocase
+        // UNUSED: $lnk = ".lnk" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -114,8 +114,8 @@ rule Russian_FIN7_Carbanak {
         $s4 = "DICELOADER" ascii nocase
         $s5 = "TIRION" ascii nocase
         $s6 = "JSSLoader" ascii nocase
-        $pos = "POS" ascii
-        $payment = "payment" ascii nocase
+        // UNUSED: $pos = "POS" ascii
+        // UNUSED: $payment = "payment" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -176,7 +176,7 @@ rule Russian_InvisiMole {
         $s3 = "RC2CL" ascii nocase
         $spy = "spy" ascii nocase
         $screen = "screen" ascii nocase
-        $audio = "audio" ascii nocase
+        // UNUSED: $audio = "audio" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -190,8 +190,8 @@ rule Russian_Berserk_Bear {
         $s2 = "TeamSpy" ascii nocase
         $s3 = "Havex" ascii nocase
         $s4 = "CrouchingYeti" ascii nocase
-        $energy = "energy" ascii nocase
-        $grid = "grid" ascii nocase
+        // UNUSED: $energy = "energy" ascii nocase
+        // UNUSED: $grid = "grid" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -206,8 +206,8 @@ rule Russian_GRU_Tools {
         $s3 = "CompuTrace" ascii nocase
         $s4 = "LoJax" ascii nocase
         $s5 = "VPNFilter" ascii nocase
-        $uefi = "UEFI" ascii
-        $bios = "BIOS" ascii
+        // UNUSED: $uefi = "UEFI" ascii
+        // UNUSED: $bios = "BIOS" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($s*))
 }
@@ -265,8 +265,8 @@ rule Russian_WhisperGate {
         $s2 = "WhisperKill" ascii nocase
         $mbr = "\\\\.\\\\" ascii
         $overwrite = { 00 00 00 00 00 00 00 00 }
-        $ransom_fake = "ransom" ascii nocase
-        $discord = "discord" ascii nocase
+        // UNUSED: $ransom_fake = "ransom" ascii nocase
+        // UNUSED: $discord = "discord" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or ($mbr and $overwrite))
 }
@@ -281,7 +281,7 @@ rule Russian_HermeticWiper {
         $driver = "epmntdrv.sys" ascii
         $driver2 = "empntdrv.sys" ascii
         $rawdisk = "RawDisk" ascii
-        $wipe = "wipe" ascii nocase
+        // UNUSED: $wipe = "wipe" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($s*) or any of ($driver, $driver2, $rawdisk))
 }
@@ -295,7 +295,7 @@ rule Russian_CaddyWiper {
         $dsquery = "dsquery" ascii
         $domain = "domain" ascii nocase
         $wipe = { 00 00 00 00 00 00 00 00 }
-        $file_zero = "CreateFileW" ascii
+        // UNUSED: $file_zero = "CreateFileW" ascii
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($dsquery and $domain and $wipe))
 }
@@ -323,7 +323,7 @@ rule Russian_DoubleZero {
         $dotnet = "mscorlib" ascii
         $file = "File.Delete" ascii
         $reg = "RegistryKey" ascii
-        $zero = { 00 00 00 00 }
+        // UNUSED: $zero = { 00 00 00 00 }
     condition:
         uint16(0) == 0x5A4D and ($s1 or ($dotnet and $file and $reg))
 }

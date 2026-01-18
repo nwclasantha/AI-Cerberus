@@ -242,7 +242,7 @@ rule Proxy_LocalTunnel {
         severity = "medium"
     strings:
         $s1 = "localtunnel" ascii nocase
-        $s2 = "lt" ascii nocase
+        // UNUSED: $s2 = "lt" ascii nocase
         $expose = "expose" ascii nocase
         $localhost = "localhost" ascii nocase
         $subdomain = "subdomain" ascii nocase

@@ -9,12 +9,12 @@ rule RAT_Cobalt_Strike {
         severity = "critical"
     strings:
         $beacon1 = "beacon" ascii nocase
-        $beacon2 = "ReflectiveLoader" ascii
+        // UNUSED: $beacon2 = "ReflectiveLoader" ascii
         $cs1 = "sleeptime" ascii
         $cs2 = "jitter" ascii
         $cs3 = "spawnto" ascii
         $cs4 = "watermark" ascii
-        $pipe = "\\\\.\\pipe\\" ascii
+        // UNUSED: $pipe = "\\\\.\\pipe\\" ascii
         $named_pipe = /\\\\\.\\pipe\\msagent_[a-f0-9]{2}/ ascii
     condition:
         uint16(0) == 0x5A4D and (($beacon1 and any of ($cs*)) or $named_pipe)
@@ -46,8 +46,8 @@ rule RAT_NjRAT {
         $ll = "|'|'|" ascii
         $sep = "Y262SUCCES" ascii
         $im = "im523" ascii
-        $key = "kl" ascii
-        $cam = "CAM" ascii
+        // UNUSED: $key = "kl" ascii
+        // UNUSED: $cam = "CAM" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($njrat, $bladabindi, $ll, $sep, $im))
 }
@@ -61,8 +61,8 @@ rule RAT_AsyncRAT {
         $async2 = "AsyncClient" ascii
         $aes = "AES" ascii
         $mutex = "AsyncMutex" ascii
-        $install = "InstallFolder" ascii
-        $connect = "Connect" ascii
+        // UNUSED: $install = "InstallFolder" ascii
+        // UNUSED: $connect = "Connect" ascii
     condition:
         uint16(0) == 0x5A4D and ($async or $async2 or ($aes and $mutex))
 }
@@ -75,9 +75,9 @@ rule RAT_QuasarRAT {
         $quasar = "Quasar" ascii nocase
         $client = "QuasarClient" ascii
         $server = "QuasarServer" ascii
-        $settings = "Settings" ascii
-        $keylogger = "Keylogger" ascii
-        $remote = "RemoteDesktop" ascii
+        // UNUSED: $settings = "Settings" ascii
+        // UNUSED: $keylogger = "Keylogger" ascii
+        // UNUSED: $remote = "RemoteDesktop" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($quasar, $client, $server))
 }
@@ -91,8 +91,8 @@ rule RAT_DarkComet {
         $dc2 = "DC_" ascii
         $dc3 = "DCNEW" ascii
         $mutex = "DC_MUTEX" ascii
-        $fwb = "FWB" ascii
-        $persistence = "SoftwareMicrosoft" ascii
+        // UNUSED: $fwb = "FWB" ascii
+        // UNUSED: $persistence = "SoftwareMicrosoft" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($dc*) or $mutex)
 }
@@ -105,9 +105,9 @@ rule RAT_RemcosRAT {
         $remcos = "Remcos" ascii nocase
         $breaking = "Breaking" ascii
         $security = "Security" ascii
-        $config = { 00 00 00 00 00 00 01 }  // Config marker
-        $keylog = "keylog" ascii nocase
-        $screen = "screen" ascii nocase
+        // UNUSED: $config = { 00 00 00 00 00 00 01 }  // Config marker
+        // UNUSED: $keylog = "keylog" ascii nocase
+        // UNUSED: $screen = "screen" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($remcos or ($breaking and $security))
 }
@@ -120,9 +120,9 @@ rule RAT_Warzone {
         $warzone = "Warzone" ascii nocase
         $avemaria = "AveMaria" ascii nocase
         $ave = "AVE_MARIA" ascii
-        $mutex = "Warzone" ascii
-        $rdp = "RDP" ascii
-        $hrdp = "HRDP" ascii
+        // UNUSED: $mutex = "Warzone" ascii
+        // UNUSED: $rdp = "RDP" ascii
+        // UNUSED: $hrdp = "HRDP" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($warzone, $avemaria, $ave))
 }
@@ -134,10 +134,10 @@ rule RAT_NanoCore {
     strings:
         $nano = "NanoCore" ascii nocase
         $client = "NanoClient" ascii
-        $guid = "GUID" ascii
-        $des = "DES" ascii
-        $plugin = "Plugin" ascii
-        $surveillance = "Surveillance" ascii
+        // UNUSED: $guid = "GUID" ascii
+        // UNUSED: $des = "DES" ascii
+        // UNUSED: $plugin = "Plugin" ascii
+        // UNUSED: $surveillance = "Surveillance" ascii
     condition:
         uint16(0) == 0x5A4D and ($nano or $client)
 }
@@ -152,7 +152,7 @@ rule RAT_PoisonIvy {
         $admin = "admin" ascii
         $stub = "stub" ascii
         $shell = "shell" ascii
-        $persist = "Active Setup" ascii
+        // UNUSED: $persist = "Active Setup" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($pivy, $pi) or ($admin and $stub and $shell))
 }
@@ -165,9 +165,9 @@ rule RAT_Gh0stRAT {
         $gh0st = "Gh0st" ascii nocase
         $marker = { 47 68 30 73 74 }  // "Gh0st"
         $pcshare = "PcShare" ascii
-        $screen = "Screen" ascii
-        $keylog = "Keylog" ascii
-        $filemanager = "FileManager" ascii
+        // UNUSED: $screen = "Screen" ascii
+        // UNUSED: $keylog = "Keylog" ascii
+        // UNUSED: $filemanager = "FileManager" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($gh0st, $marker, $pcshare))
 }
@@ -195,8 +195,8 @@ rule RAT_Orcus {
         $orcus = "Orcus" ascii nocase
         $admin = "OrcusAdmin" ascii
         $client = "OrcusClient" ascii
-        $plugin = "Plugin" ascii
-        $command = "Command" ascii
+        // UNUSED: $plugin = "Plugin" ascii
+        // UNUSED: $command = "Command" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($orcus, $admin, $client))
 }
@@ -208,10 +208,10 @@ rule RAT_LimeRAT {
     strings:
         $lime = "LimeRAT" ascii nocase
         $limeclient = "LimeClient" ascii
-        $aes = "AES" ascii
-        $spread = "Spread" ascii
-        $miner = "Miner" ascii
-        $ransom = "Ransom" ascii
+        // UNUSED: $aes = "AES" ascii
+        // UNUSED: $spread = "Spread" ascii
+        // UNUSED: $miner = "Miner" ascii
+        // UNUSED: $ransom = "Ransom" ascii
     condition:
         uint16(0) == 0x5A4D and (any of ($lime, $limeclient))
 }
@@ -225,7 +225,7 @@ rule RAT_RevengeRAT {
         $client = "Client" ascii
         $socket = "Socket" ascii
         $keylog = "KeyLog" ascii
-        $config = "Config" ascii
+        // UNUSED: $config = "Config" ascii
     condition:
         uint16(0) == 0x5A4D and ($revenge and any of ($client, $socket, $keylog))
 }
@@ -236,7 +236,7 @@ rule RAT_BitRAT {
         severity = "critical"
     strings:
         $bitrat = "BitRAT" ascii nocase
-        $bit = "Bit" ascii
+        // UNUSED: $bit = "Bit" ascii
         $hvnc = "HVNC" ascii
         $rdp = "RDP" ascii
         $socks5 = "SOCKS5" ascii
@@ -282,7 +282,7 @@ rule RMM_Abuse_AnyDesk {
         severity = "medium"
     strings:
         $anydesk = "AnyDesk" ascii nocase
-        $gcapi = "gcapi" ascii
+        // UNUSED: $gcapi = "gcapi" ascii
         $silent = "--silent" ascii
         $install = "--install" ascii
         $unattended = "ad.anynet.id" ascii
@@ -296,10 +296,10 @@ rule RMM_Abuse_TeamViewer {
         severity = "medium"
     strings:
         $teamviewer = "TeamViewer" ascii nocase
-        $tv = "TV" ascii
+        // UNUSED: $tv = "TV" ascii
         $silent = "--silent" ascii
         $no_gui = "--no-gui" ascii
-        $api = "api.teamviewer.com" ascii
+        // UNUSED: $api = "api.teamviewer.com" ascii
     condition:
         uint16(0) == 0x5A4D and $teamviewer and (any of ($silent, $no_gui))
 }

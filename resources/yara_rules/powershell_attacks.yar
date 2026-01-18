@@ -248,7 +248,7 @@ rule PowerShell_Persistence {
         $schtasks = "Register-ScheduledTask" ascii
         $schtasks2 = "New-ScheduledTaskAction" ascii
         $wmi_persist = "__EventFilter" ascii
-        $startup = "Startup" ascii nocase
+        // UNUSED: $startup = "Startup" ascii nocase
     condition:
         (any of ($reg, $reg2) and $run) or (any of ($schtasks, $schtasks2)) or $wmi_persist
 }

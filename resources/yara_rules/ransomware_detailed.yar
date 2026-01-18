@@ -227,7 +227,7 @@ rule Ransomware_Play {
         $ext = ".PLAY" ascii
         $pattern = "PLAY" ascii
     condition:
-        uint16(0) == 0x5A4D and (($s2 and $note) or ($ext and $pattern))
+        uint16(0) == 0x5A4D and (($s1 and $note) or ($s2 and $note) or ($ext and $pattern))
 }
 
 rule Ransomware_Vice_Society {

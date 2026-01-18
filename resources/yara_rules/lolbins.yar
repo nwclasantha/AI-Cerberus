@@ -11,7 +11,7 @@ rule LOLBin_Certutil {
         $certutil = "certutil" ascii nocase
         $url = "-urlcache" ascii nocase
         $split = "-split" ascii nocase
-        $f = "-f" ascii
+        // UNUSED: $f = "-f" ascii
         $decode = "-decode" ascii nocase
         $encode = "-encode" ascii nocase
         $http = "http" ascii nocase
@@ -45,7 +45,7 @@ rule LOLBin_Regsvr32 {
         $i = "/i:" ascii nocase
         $s = "/s" ascii
         $n = "/n" ascii
-        $u = "/u" ascii
+        // UNUSED: $u = "/u" ascii
     condition:
         $regsvr32 and ($scrobj or $http or ($i and ($s or $n)))
 }
@@ -57,7 +57,7 @@ rule LOLBin_Rundll32 {
     strings:
         $rundll32 = "rundll32" ascii nocase
         $javascript = "javascript" ascii nocase
-        $shell32 = "shell32.dll" ascii nocase
+        // UNUSED: $shell32 = "shell32.dll" ascii nocase
         $advpack = "advpack.dll" ascii nocase
         $url = "url.dll" ascii nocase
         $ieframe = "ieframe.dll" ascii nocase
@@ -92,7 +92,7 @@ rule LOLBin_Msiexec {
         $msiexec = "msiexec" ascii nocase
         $q = "/q" ascii nocase
         $quiet = "/quiet" ascii nocase
-        $i = "/i" ascii nocase
+        // UNUSED: $i = "/i" ascii nocase
         $http = "http" ascii nocase
         $y = "/y" ascii nocase
         $dll = ".dll" ascii nocase
@@ -125,7 +125,7 @@ rule LOLBin_Bitsadmin {
         $create = "/create" ascii nocase
         $addfile = "/addfile" ascii nocase
         $setnotifycmdline = "/SetNotifyCmdLine" ascii nocase
-        $resume = "/resume" ascii nocase
+        // UNUSED: $resume = "/resume" ascii nocase
         $http = "http" ascii nocase
     condition:
         $bitsadmin and (($transfer and $http) or $setnotifycmdline or ($create and $addfile))
@@ -137,8 +137,8 @@ rule LOLBin_Forfiles {
         severity = "medium"
     strings:
         $forfiles = "forfiles" ascii nocase
-        $p = "/p" ascii nocase
-        $s = "/s" ascii nocase
+        // UNUSED: $p = "/p" ascii nocase
+        // UNUSED: $s = "/s" ascii nocase
         $c = "/c" ascii nocase
         $cmd = "cmd" ascii nocase
         $exec = "0x" ascii
@@ -167,8 +167,8 @@ rule LOLBin_Ieexec {
     strings:
         $ieexec = "ieexec" ascii nocase
         $http = "http" ascii nocase
-        $exe = ".exe" ascii nocase
-        $framework = "Framework" ascii nocase
+        // UNUSED: $exe = ".exe" ascii nocase
+        // UNUSED: $framework = "Framework" ascii nocase
     condition:
         $ieexec and $http
 }
@@ -267,7 +267,7 @@ rule LOLBin_Dnscmd {
         $serverlevelplugin = "/ServerLevelPluginDll" ascii nocase
         $config = "/config" ascii nocase
         $dll = ".dll" ascii nocase
-        $unc = "\\\\" ascii
+        // UNUSED: $unc = "\\\\" ascii
     condition:
         $dnscmd and ($serverlevelplugin or ($config and $dll))
 }

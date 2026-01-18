@@ -54,7 +54,7 @@ rule Meterpreter_Reverse_Shell {
     strings:
         $s1 = {FC E8 ?? 00 00 00}
         $s2 = "ws2_32" ascii
-        $s3 = "kernel32" ascii
+        // UNUSED: $s3 = "kernel32" ascii
         $api1 = "VirtualAlloc" ascii
         $api2 = "CreateThread" ascii
     condition:

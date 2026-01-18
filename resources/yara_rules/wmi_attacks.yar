@@ -45,8 +45,8 @@ rule WMI_Remote_Execution {
         $process = "process" ascii nocase
         $call = "call" ascii nocase
         $create = "create" ascii nocase
-        $user = "/user:" ascii nocase
-        $password = "/password:" ascii nocase
+        // UNUSED: $user = "/user:" ascii nocase
+        // UNUSED: $password = "/password:" ascii nocase
     condition:
         $wmi and (any of ($node, $remote)) and ($process and any of ($call, $create))
 }
@@ -60,7 +60,7 @@ rule WMI_WMIC_XSL {
         $format = "/format:" ascii nocase
         $xsl = ".xsl" ascii nocase
         $http = "http" ascii nocase
-        $script = "<script" ascii nocase
+        // UNUSED: $script = "<script" ascii nocase
     condition:
         $wmic and $format and ($xsl or $http)
 }
@@ -103,8 +103,8 @@ rule WMI_Exfiltration {
         $namespace = "root\\" ascii nocase
         $query = "ExecQuery" ascii
         $select = "SELECT" ascii
-        $dns = "Win32_PingStatus" ascii
-        $http = "Win32_Process" ascii
+        // UNUSED: $dns = "Win32_PingStatus" ascii
+        // UNUSED: $http = "Win32_Process" ascii
     condition:
         $wmi and ($namespace or $query) and $select
 }
@@ -115,7 +115,7 @@ rule WMI_Startup_Persistence {
         severity = "critical"
     strings:
         $startup = "__InstanceCreationEvent" ascii
-        $win32 = "Win32_ProcessStartup" ascii
+        // UNUSED: $win32 = "Win32_ProcessStartup" ascii
         $logon = "Win32_LogonSession" ascii
         $filter = "__EventFilter" ascii
         $consumer = "CommandLineEventConsumer" ascii
@@ -134,7 +134,7 @@ rule WMI_Registry_Operations {
         $createkey = "CreateKey" ascii
         $deletekey = "DeleteKey" ascii
         $enumkey = "EnumKey" ascii
-        $hklm = "2147483650" ascii  // HKLM constant
+        // UNUSED: $hklm = "2147483650" ascii  // HKLM constant
     condition:
         $stdregprov and (any of ($getstringvalue, $setstringvalue, $createkey, $deletekey, $enumkey))
 }
@@ -164,7 +164,7 @@ rule WMI_Shadow_Copy_Delete {
         $delete = "Delete" ascii
         $wmic = "wmic" ascii nocase
         $shadowcopy = "shadowcopy" ascii nocase
-        $all = "/all" ascii nocase
+        // UNUSED: $all = "/all" ascii nocase
     condition:
         ($shadow and $delete) or ($wmic and $shadowcopy and $delete)
 }

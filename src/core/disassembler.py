@@ -140,12 +140,12 @@ class Disassembler(BaseAnalyzer):
     def supported_formats(self) -> list:
         return ["*"]
 
-    def __init__(self, max_instructions: int = 50000):
+    def __init__(self, max_instructions: int = 200000):
         """
         Initialize disassembler with 100% binary coverage.
 
         Args:
-            max_instructions: Maximum instructions to disassemble (increased to 50K for full coverage)
+            max_instructions: Maximum instructions to disassemble (200K for maximum coverage)
         """
         super().__init__()
         self.max_instructions = max_instructions
@@ -194,7 +194,7 @@ class Disassembler(BaseAnalyzer):
         self,
         file_path: Path,
         data: Optional[bytes] = None,
-        architecture: str = "x64",
+        architecture: str = "auto",
         offset: int = 0,
         base_address: int = 0,
     ) -> DisassemblyResult:
@@ -204,8 +204,8 @@ class Disassembler(BaseAnalyzer):
         Args:
             file_path: Path to file
             data: Optional pre-loaded data
-            architecture: Target architecture
-            offset: Offset to start disassembly
+            architecture: Target architecture ("auto" for auto-detect)
+            offset: Offset to start disassembly (0 = auto-extract code section)
             base_address: Base address for instruction addresses
 
         Returns:
@@ -217,10 +217,36 @@ class Disassembler(BaseAnalyzer):
         if data is None:
             data = self._load_file(file_path)
 
+        # Auto-detect architecture
+        if architecture == "auto":
+            architecture = self.detect_architecture(data)
+
+        # For PE/ELF files with offset=0, auto-extract code section
+        code_bytes = None
+        code_base = base_address
+
+        if offset == 0:
+            # Try PE extraction
+            if data[:2] == b"MZ":
+                pe_info = self._extract_pe_code_section(data)
+                if pe_info:
+                    code_bytes, _, code_base = pe_info
+
+            # Try ELF extraction
+            elif data[:4] == b"\x7fELF":
+                elf_info = self._extract_elf_code_section(data)
+                if elf_info:
+                    code_bytes, _, code_base = elf_info
+
+        # Fall back to raw data if extraction failed
+        if code_bytes is None:
+            code_bytes = data[offset:]
+            code_base = base_address + offset
+
         result = DisassemblyResult(
             architecture=architecture,
             mode="64-bit" if architecture == "x64" else "32-bit",
-            entry_point=base_address + offset,
+            entry_point=code_base,
         )
 
         if not self._capstone_available:
@@ -242,48 +268,68 @@ class Disassembler(BaseAnalyzer):
             md = capstone.Cs(cs_arch, cs_mode)
             md.detail = True
 
-            # Get code to disassemble - FULL BINARY (not just 8KB!)
-            # Limit to 10MB for performance, but that covers most binaries
-            max_code_size = min(len(data) - offset, 10 * 1024 * 1024)  # 10MB max
-            code = data[offset:offset + max_code_size]
+            # Limit to 10MB for performance
+            max_code_size = min(len(code_bytes), 10 * 1024 * 1024)
+            code = code_bytes[:max_code_size]
 
-            logger.info(f"Disassembling {len(code):,} bytes (full binary)")
+            logger.info(f"Disassembling {len(code):,} bytes from code section")
 
-            # Disassemble
+            # Disassemble with skip-over for invalid bytes (full coverage)
             count = 0
-            for insn in md.disasm(code, base_address + offset):
-                if count >= self.max_instructions:
-                    logger.warning(f"Reached max instructions limit: {self.max_instructions}")
-                    break
+            offset = 0
+            skip_count = 0
 
-                bytes_hex = " ".join(f"{b:02x}" for b in insn.bytes)
-                mnemonic = insn.mnemonic.lower()
+            while offset < len(code) and count < self.max_instructions:
+                # Try to disassemble from current offset
+                chunk = code[offset:]
+                addr = code_base + offset
+                found_any = False
 
-                instruction = Instruction(
-                    address=insn.address,
-                    size=insn.size,
-                    mnemonic=insn.mnemonic,
-                    op_str=insn.op_str,
-                    bytes_hex=bytes_hex,
-                    is_call=mnemonic == "call",
-                    is_jump=mnemonic.startswith("j") and mnemonic != "jmp",
-                    is_ret=mnemonic in ["ret", "retn", "retf"],
-                )
+                for insn in md.disasm(chunk, addr):
+                    if count >= self.max_instructions:
+                        break
 
-                # DETECT SUSPICIOUS INSTRUCTIONS using Hybrid ML + patterns
-                self._check_suspicious_instruction(instruction)
+                    bytes_hex = " ".join(f"{b:02x}" for b in insn.bytes)
+                    mnemonic = insn.mnemonic.lower()
 
-                result.instructions.append(instruction)
+                    instruction = Instruction(
+                        address=insn.address,
+                        size=insn.size,
+                        mnemonic=insn.mnemonic,
+                        op_str=insn.op_str,
+                        bytes_hex=bytes_hex,
+                        is_call=mnemonic == "call",
+                        is_jump=mnemonic.startswith("j") and mnemonic != "jmp",
+                        is_ret=mnemonic in ["ret", "retn", "retf"],
+                    )
 
-                # Track call targets
-                if instruction.is_call:
-                    try:
-                        target = int(insn.op_str, 16)
-                        result.call_targets.append(target)
-                    except ValueError:
-                        pass
+                    # DETECT SUSPICIOUS INSTRUCTIONS using Hybrid ML + patterns
+                    self._check_suspicious_instruction(instruction)
 
-                count += 1
+                    result.instructions.append(instruction)
+
+                    # Track call targets
+                    if instruction.is_call:
+                        try:
+                            target = int(insn.op_str, 16)
+                            result.call_targets.append(target)
+                        except ValueError:
+                            pass
+
+                    count += 1
+                    offset += insn.size
+                    found_any = True
+
+                # If no instructions found, skip 1 byte (data/padding)
+                if not found_any:
+                    offset += 1
+                    skip_count += 1
+
+            if skip_count > 0:
+                logger.info(f"Skipped {skip_count:,} invalid bytes (data/padding)")
+
+            if count >= self.max_instructions:
+                logger.warning(f"Reached max instructions limit: {self.max_instructions}")
 
             # Generate basic blocks
             result.basic_blocks = self._generate_basic_blocks(result.instructions)
@@ -341,11 +387,33 @@ class Disassembler(BaseAnalyzer):
             suspicious_mnemonics[mnemonic](instruction)
 
     def _check_code_modification(self, instruction: Instruction) -> None:
-        """Check for code modification patterns (self-modifying code)."""
+        """Check for code modification patterns (self-modifying code).
+
+        Only flags WRITES to code segment - RIP-relative reads are normal x64 code.
+        """
         op_str = instruction.op_str.lower()
-        # Writing to code segment or executable memory
-        if "cs:" in op_str or "rip" in op_str or "eip" in op_str:
-            self._mark_suspicious(instruction, "Potential self-modifying code", "high")
+        mnemonic = instruction.mnemonic.lower()
+
+        # Only MOV instructions can write to memory
+        if mnemonic != "mov":
+            return
+
+        # Parse operands (dst, src for MOV)
+        parts = op_str.split(",", 1)
+        if len(parts) != 2:
+            return
+
+        dst = parts[0].strip()
+
+        # Check for writes to code segment (cs: prefix)
+        if "cs:" in dst:
+            self._mark_suspicious(instruction, "Writing to code segment", "critical")
+            return
+
+        # Check for writes TO memory via rip/eip (destination is memory operand)
+        # Memory operands contain brackets: [rip + ...]
+        if ("[" in dst and "]" in dst) and ("rip" in dst or "eip" in dst):
+            self._mark_suspicious(instruction, "Writing to code-relative memory", "high")
 
     def _check_obfuscation(self, instruction: Instruction) -> None:
         """Check for obfuscation patterns."""
@@ -550,3 +618,107 @@ class Disassembler(BaseAnalyzer):
             return "x64" if ei_class == 2 else "x86"
 
         return "x64"  # Default
+
+    def _extract_pe_code_section(self, data: bytes) -> Optional[Tuple[bytes, int, int]]:
+        """
+        Extract code section from PE file.
+
+        Args:
+            data: PE file data
+
+        Returns:
+            Tuple of (code_bytes, file_offset, virtual_address) or None
+        """
+        try:
+            import pefile
+            pe = pefile.PE(data=data)
+
+            # Find executable section (usually .text)
+            code_section = None
+            for section in pe.sections:
+                # Check for executable section (IMAGE_SCN_MEM_EXECUTE = 0x20000000)
+                if section.Characteristics & 0x20000000:
+                    code_section = section
+                    break
+
+            if code_section is None:
+                pe.close()
+                return None
+
+            # Extract code bytes
+            section_offset = code_section.PointerToRawData
+            section_size = code_section.SizeOfRawData
+            section_va = pe.OPTIONAL_HEADER.ImageBase + code_section.VirtualAddress
+
+            code_bytes = data[section_offset:section_offset + section_size]
+
+            pe.close()
+
+            logger.info(
+                f"PE code section: .text at offset {section_offset}, "
+                f"VA 0x{section_va:x}, size {len(code_bytes)}"
+            )
+
+            return (code_bytes, section_offset, section_va)
+
+        except Exception as e:
+            logger.warning(f"Failed to extract PE code section: {e}")
+            return None
+
+    def _extract_elf_code_section(self, data: bytes) -> Optional[Tuple[bytes, int, int]]:
+        """
+        Extract code section from ELF file.
+
+        Args:
+            data: ELF file data
+
+        Returns:
+            Tuple of (code_bytes, file_offset, virtual_address) or None
+        """
+        try:
+            # Parse ELF header
+            ei_class = data[4]  # 1 = 32-bit, 2 = 64-bit
+            is_64bit = ei_class == 2
+
+            if is_64bit:
+                # ELF64 header
+                e_phoff = int.from_bytes(data[32:40], 'little')
+                e_phentsize = int.from_bytes(data[54:56], 'little')
+                e_phnum = int.from_bytes(data[56:58], 'little')
+            else:
+                # ELF32 header
+                e_phoff = int.from_bytes(data[28:32], 'little')
+                e_phentsize = int.from_bytes(data[42:44], 'little')
+                e_phnum = int.from_bytes(data[44:46], 'little')
+
+            # Find PT_LOAD segment with execute permission
+            for i in range(e_phnum):
+                ph_offset = e_phoff + i * e_phentsize
+
+                if is_64bit:
+                    p_type = int.from_bytes(data[ph_offset:ph_offset+4], 'little')
+                    p_flags = int.from_bytes(data[ph_offset+4:ph_offset+8], 'little')
+                    p_offset = int.from_bytes(data[ph_offset+8:ph_offset+16], 'little')
+                    p_vaddr = int.from_bytes(data[ph_offset+16:ph_offset+24], 'little')
+                    p_filesz = int.from_bytes(data[ph_offset+32:ph_offset+40], 'little')
+                else:
+                    p_type = int.from_bytes(data[ph_offset:ph_offset+4], 'little')
+                    p_offset = int.from_bytes(data[ph_offset+4:ph_offset+8], 'little')
+                    p_vaddr = int.from_bytes(data[ph_offset+8:ph_offset+12], 'little')
+                    p_filesz = int.from_bytes(data[ph_offset+16:ph_offset+20], 'little')
+                    p_flags = int.from_bytes(data[ph_offset+24:ph_offset+28], 'little')
+
+                # PT_LOAD = 1, PF_X (execute) = 1
+                if p_type == 1 and (p_flags & 1):
+                    code_bytes = data[p_offset:p_offset + p_filesz]
+                    logger.info(
+                        f"ELF code segment: offset {p_offset}, "
+                        f"VA 0x{p_vaddr:x}, size {len(code_bytes)}"
+                    )
+                    return (code_bytes, p_offset, p_vaddr)
+
+            return None
+
+        except Exception as e:
+            logger.warning(f"Failed to extract ELF code section: {e}")
+            return None

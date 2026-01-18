@@ -83,7 +83,7 @@ rule DNS_Tunnel_Cobalt_Strike_DNS {
         severity = "critical"
     strings:
         $s1 = "beacon" ascii nocase
-        $s2 = "dns-beacon" ascii nocase
+        // UNUSED: $s2 = "dns-beacon" ascii nocase
         $dns = "dns" ascii nocase
         $mode = "mode" ascii nocase
         $txt = "TXT" ascii
@@ -276,7 +276,7 @@ rule DNS_Tunnel_Rebinding {
         $rebind = "rebind" ascii nocase
         $dns = "dns" ascii nocase
         $ttl = "TTL" ascii
-        $low = "0" ascii
+        // UNUSED: $low = "0" ascii
         $localhost = "127.0.0.1" ascii
         $internal = "192.168" ascii
     condition:

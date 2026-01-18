@@ -55,7 +55,7 @@ rule Email_PDF_JavaScript_Exploit
         $exploit2 = "unescape(" ascii
         $exploit3 = "String.fromCharCode" ascii
         $shellcode = { 90 90 90 90 }
-        $heap = "spray" ascii nocase
+        // UNUSED: $heap = "spray" ascii nocase
 
     condition:
         $pdf at 0 and
@@ -155,9 +155,9 @@ rule Email_Malicious_HTML_Attachment
         $html1 = "<html" ascii nocase
         $html2 = "<body" ascii nocase
         $form1 = "<form" ascii nocase
-        $form2 = "action=" ascii
+        // UNUSED: $form2 = "action=" ascii
         $input1 = "type=\"password\"" ascii nocase
-        $input2 = "type=\"text\"" ascii nocase
+        // UNUSED: $input2 = "type=\"text\"" ascii nocase
         $js1 = "<script" ascii nocase
         $encode1 = "atob(" ascii
         $encode2 = "unescape(" ascii
@@ -253,7 +253,7 @@ rule Email_Sextortion_Scam
         $btc2 = /[13][a-km-zA-HJ-NP-Z1-9]{25,34}/ ascii
         $btc3 = "BTC" ascii wide
         $deadline = "48 hours" ascii wide nocase
-        $share = "share" ascii wide nocase
+        // UNUSED: $share = "share" ascii wide nocase
 
     condition:
         (2 of ($threat*) and 1 of ($btc*)) or
@@ -472,7 +472,7 @@ rule Email_QR_Code_Phishing
     strings:
         $qr1 = "QR code" ascii wide nocase
         $qr2 = "scan" ascii wide nocase
-        $qr3 = "phone" ascii wide nocase
+        // UNUSED: $qr3 = "phone" ascii wide nocase
         $img1 = ".png" ascii nocase
         $img2 = ".jpg" ascii nocase
         $img3 = "data:image" ascii

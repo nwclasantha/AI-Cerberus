@@ -103,7 +103,7 @@ rule SocialEng_Fake_Login {
         $login = "login" ascii nocase
         $signin = "sign in" ascii nocase
         $password = "password" ascii nocase
-        $fake = "fake" ascii nocase
+        // UNUSED: $fake = "fake" ascii nocase
     condition:
         (any of ($microsoft, $google, $facebook, $apple)) and (any of ($login, $signin)) and $password
 }
@@ -118,8 +118,8 @@ rule SocialEng_Office365_Phish {
         $outlook = "Outlook" ascii nocase
         $login = "login" ascii nocase
         $password = "password" ascii nocase
-        $phish = "phish" ascii nocase
-        $harvest = "harvest" ascii nocase
+        // UNUSED: $phish = "phish" ascii nocase
+        // UNUSED: $harvest = "harvest" ascii nocase
     condition:
         (any of ($o365, $microsoft, $outlook)) and ($login and $password)
 }

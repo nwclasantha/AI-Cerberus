@@ -12,8 +12,8 @@ rule Bootkit_MBR_Generic {
         $physdisk = "PhysicalDrive0" ascii
         $read = "ReadFile" ascii
         $write = "WriteFile" ascii
-        $offset = { 00 7C }  // MBR offset
-        $boot = { 55 AA }    // Boot signature
+        // UNUSED: $offset = { 00 7C }  // MBR offset
+        // UNUSED: $boot = { 55 AA }    // Boot signature
     condition:
         uint16(0) == 0x5A4D and ($mbr or $physdisk) and ($read or $write)
 }
@@ -26,7 +26,7 @@ rule Bootkit_VBR_Generic {
         $vbr = "VBR" ascii
         $ntfs = "NTFS" ascii
         $boot = "boot" ascii nocase
-        $sector = "sector" ascii nocase
+        // UNUSED: $sector = "sector" ascii nocase
         $hook = "hook" ascii nocase
         $chain = "chain" ascii nocase
     condition:
@@ -39,11 +39,11 @@ rule Bootkit_TDL_Alureon {
         severity = "critical"
     strings:
         $tdl1 = "TDL" ascii nocase
-        $tdl2 = "TDSS" ascii nocase
+        // UNUSED: $tdl2 = "TDSS" ascii nocase
         $alureon = "Alureon" ascii nocase
-        $mbr = "MBR" ascii
-        $hook = "hook" ascii nocase
-        $rootkit = "rootkit" ascii nocase
+        // UNUSED: $mbr = "MBR" ascii
+        // UNUSED: $hook = "hook" ascii nocase
+        // UNUSED: $rootkit = "rootkit" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($tdl*, $alureon))
 }
@@ -55,9 +55,9 @@ rule Bootkit_Rovnix {
     strings:
         $rovnix = "Rovnix" ascii nocase
         $carberp = "Carberp" ascii nocase
-        $vbr = "VBR" ascii
-        $nt = "NT" ascii
-        $boot = "boot" ascii nocase
+        // UNUSED: $vbr = "VBR" ascii
+        // UNUSED: $nt = "NT" ascii
+        // UNUSED: $boot = "boot" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($rovnix, $carberp))
 }
@@ -71,7 +71,7 @@ rule Bootkit_Gapz {
         $vbr = "VBR" ascii
         $stealth = "stealth" ascii nocase
         $hook = "hook" ascii nocase
-        $inject = "inject" ascii nocase
+        // UNUSED: $inject = "inject" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($gapz or ($vbr and $stealth and $hook))
 }
@@ -84,8 +84,8 @@ rule Bootkit_Mebroot {
         $mebroot = "Mebroot" ascii nocase
         $sinowal = "Sinowal" ascii nocase
         $torpig = "Torpig" ascii nocase
-        $mbr = "MBR" ascii
-        $driver = "driver" ascii nocase
+        // UNUSED: $mbr = "MBR" ascii
+        // UNUSED: $driver = "driver" ascii nocase
     condition:
         uint16(0) == 0x5A4D and (any of ($mebroot, $sinowal, $torpig))
 }
@@ -116,7 +116,7 @@ rule UEFI_MosaicRegressor {
         $dxe = "DXE" ascii
         $smi = "SMI" ascii
         $nvram = "NVRAM" ascii
-        $firmware = "firmware" ascii nocase
+        // UNUSED: $firmware = "firmware" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($mosaic or ($uefi and any of ($dxe, $smi, $nvram)))
 }
@@ -160,7 +160,7 @@ rule UEFI_MoonBounce {
         $spi = "SPI" ascii
         $flash = "flash" ascii nocase
         $core_dxe = "CORE_DXE" ascii
-        $firmware = "firmware" ascii nocase
+        // UNUSED: $firmware = "firmware" ascii nocase
     condition:
         uint16(0) == 0x5A4D and ($moonbounce or ($uefi and any of ($spi, $flash, $core_dxe)))
 }
@@ -202,7 +202,7 @@ rule UEFI_BlackLotus {
         $uefi = "UEFI" ascii
         $secureboot = "Secure Boot" ascii nocase
         $bypass = "bypass" ascii nocase
-        $bootkit = "bootkit" ascii nocase
+        // UNUSED: $bootkit = "bootkit" ascii nocase
         $cve = "CVE-2022-21894" ascii
     condition:
         uint16(0) == 0x5A4D and ($blacklotus or $cve or ($uefi and $secureboot and $bypass))
@@ -235,7 +235,7 @@ rule UEFI_SPI_Flash_Write {
         $erase = "erase" ascii nocase
         $program = "program" ascii nocase
         $bios = "BIOS" ascii
-        $driver = "driver" ascii nocase
+        // UNUSED: $driver = "driver" ascii nocase
     condition:
         uint16(0) == 0x5A4D and $spi and ($flash or $bios) and (any of ($write, $erase, $program))
 }

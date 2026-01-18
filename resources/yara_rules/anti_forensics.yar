@@ -45,7 +45,7 @@ rule AntiForensics_Shadow_Copy_Delete {
         $shadows = "shadows" ascii nocase
         $wmic = "wmic" ascii nocase
         $shadowcopy = "shadowcopy" ascii nocase
-        $resize = "resize" ascii nocase
+        // UNUSED: $resize = "resize" ascii nocase
         $bcdedit = "bcdedit" ascii nocase
         $recoveryenabled = "recoveryenabled" ascii nocase
     condition:
@@ -77,7 +77,7 @@ rule AntiForensics_MFT_Manipulation {
     strings:
         $mft = "$MFT" ascii
         $mftmirr = "$MFTMirr" ascii
-        $ntfs = "NTFS" ascii
+        // UNUSED: $ntfs = "NTFS" ascii
         $raw = "\\\\.\\PhysicalDrive" ascii
         $sector = "sector" ascii nocase
         $corrupt = "corrupt" ascii nocase
@@ -172,7 +172,7 @@ rule AntiForensics_Slack_Space_Hiding {
         $space = "space" ascii nocase
         $hide = "hide" ascii nocase
         $cluster = "cluster" ascii nocase
-        $ntfs = "NTFS" ascii
+        // UNUSED: $ntfs = "NTFS" ascii
         $raw = "raw" ascii nocase
     condition:
         ($slack and $space and $hide) or ($cluster and any of ($hide, $raw))
@@ -299,7 +299,7 @@ rule AntiForensics_Self_Destruction {
     strings:
         $self = "self" ascii nocase
         $destruct = "destruct" ascii nocase
-        $delete = "delete" ascii nocase
+        // UNUSED: $delete = "delete" ascii nocase
         $remove = "remove" ascii nocase
         $cmd = "cmd.exe" ascii nocase
         $del = "/c del" ascii nocase

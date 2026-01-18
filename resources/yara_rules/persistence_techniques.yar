@@ -48,8 +48,8 @@ rule Persistence_Scheduled_Task {
         $xml3 = "<Command>" ascii
         $api1 = "ITaskService" ascii
         $api2 = "RegisterTaskDefinition" ascii
-        $tr = "/tr" ascii nocase
-        $sc = "/sc" ascii nocase
+        // UNUSED: $tr = "/tr" ascii nocase
+        // UNUSED: $sc = "/sc" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         (($schtasks and $create) or (2 of ($xml*)) or all of ($api*))
@@ -64,11 +64,11 @@ rule Persistence_Service_Creation {
         $api2 = "CreateServiceW" ascii
         $api3 = "OpenSCManagerA" ascii
         $api4 = "OpenSCManagerW" ascii
-        $api5 = "StartServiceA" ascii
-        $api6 = "StartServiceW" ascii
+        // UNUSED: $api5 = "StartServiceA" ascii
+        // UNUSED: $api6 = "StartServiceW" ascii
         $sc = "sc create" ascii nocase
         $binpath = "binPath=" ascii nocase
-        $auto = "auto" ascii nocase
+        // UNUSED: $auto = "auto" ascii nocase
     condition:
         uint16(0) == 0x5A4D and
         ((any of ($api1, $api2) and any of ($api3, $api4)) or ($sc and $binpath))
@@ -132,7 +132,7 @@ rule Persistence_Image_File_Exec {
         $debug = "Debugger" ascii
         $gflags = "GlobalFlag" ascii
         $silent = "SilentProcessExit" ascii
-        $api = "RegSetValue" ascii
+        // UNUSED: $api = "RegSetValue" ascii
     condition:
         uint16(0) == 0x5A4D and $ifeo and (any of ($debug, $gflags, $silent))
 }

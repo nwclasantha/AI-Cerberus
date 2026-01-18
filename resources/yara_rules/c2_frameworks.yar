@@ -45,7 +45,7 @@ rule C2_Metasploit_Meterpreter {
         $s3 = "priv" ascii
         $s4 = "extapi" ascii
         $api1 = "ReflectiveLoader" ascii
-        $api2 = "MZ" ascii
+        // UNUSED: $api2 = "MZ" ascii
         $rev = "reverse_" ascii
         $shell = "_meterpreter" ascii
     condition:

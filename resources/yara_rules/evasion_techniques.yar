@@ -90,7 +90,7 @@ rule AntiDebug_INT3_Check {
         $int3 = {CC}
         $check = {80 38 CC}
     condition:
-        $check
+        $int3 and $check
 }
 
 rule AntiDebug_Hardware_Breakpoint {
@@ -193,7 +193,7 @@ rule AntiVM_Wine {
     strings:
         $s1 = "wine" nocase
         $api = "wine_get_version" ascii
-        $dll = "ntdll.dll" ascii
+        // UNUSED: $dll = "ntdll.dll" ascii
     condition:
         any of ($s*) or $api
 }

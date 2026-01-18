@@ -44,7 +44,7 @@ rule DDoS_HOIC {
         $high = "High Orbit" ascii nocase
         $booster = "booster" ascii nocase
         $power = "power" ascii nocase
-        $script = ".hoic" ascii nocase
+        // UNUSED: $script = ".hoic" ascii nocase
     condition:
         (any of ($hoic, $high)) or ($booster and $power)
 }
@@ -101,8 +101,8 @@ rule DDoS_Xerxes {
         $xerxes = "Xerxes" ascii nocase
         $th3 = "th3" ascii nocase
         $flood = "flood" ascii nocase
-        $target = "target" ascii nocase
-        $port = "port" ascii nocase
+        // UNUSED: $target = "target" ascii nocase
+        // UNUSED: $port = "port" ascii nocase
     condition:
         $xerxes or ($th3 and $flood)
 }
@@ -117,7 +117,7 @@ rule DDoS_Hulk {
         $unbearable = "Unbearable" ascii
         $load = "Load" ascii nocase
         $king = "King" ascii nocase
-        $random = "random" ascii nocase
+        // UNUSED: $random = "random" ascii nocase
     condition:
         $hulk or ($http and ($unbearable or ($load and $king)))
 }
@@ -132,7 +132,7 @@ rule DDoS_Torshammer {
         $hammer = "hammer" ascii nocase
         $slow = "slow" ascii nocase
         $post = "POST" ascii
-        $tor = "Tor" ascii
+        // UNUSED: $tor = "Tor" ascii
     condition:
         $torshammer or (($hammer or $tors) and $slow and $post)
 }
@@ -221,7 +221,7 @@ rule DDoS_DNS_Amplification {
         $any = "ANY" ascii
         $spoof = "spoof" ascii nocase
         $reflect = "reflect" ascii nocase
-        $port = "53" ascii
+        // UNUSED: $port = "53" ascii
     condition:
         $dns and (any of ($amplify, $amplification)) and (any of ($any, $spoof, $reflect))
 }
@@ -236,7 +236,7 @@ rule DDoS_NTP_Amplification {
         $monlist = "monlist" ascii
         $mode7 = "mode 7" ascii nocase
         $reflect = "reflect" ascii nocase
-        $port = "123" ascii
+        // UNUSED: $port = "123" ascii
     condition:
         $ntp and (any of ($amplify, $monlist, $mode7, $reflect))
 }
@@ -266,7 +266,7 @@ rule DDoS_SSDP_Amplification {
         $msearch = "M-SEARCH" ascii
         $amplify = "amplify" ascii nocase
         $reflect = "reflect" ascii nocase
-        $port = "1900" ascii
+        // UNUSED: $port = "1900" ascii
     condition:
         ($ssdp or $upnp) and ($msearch or any of ($amplify, $reflect))
 }

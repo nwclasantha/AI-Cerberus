@@ -1,123 +1,99 @@
 /*
-   Information Stealer Detection Rules
-   Patterns for detecting credential theft and data exfiltration
+    Information Stealer Detection Rules
+    Patterns for detecting credential theft and data exfiltration
 */
 
-rule Keylogger_Indicators {
+rule Stealer_Browser_Data {
     meta:
-        description = "Keylogging functionality"
-        author = "Malware Analyzer Team"
-        date = "2025-01-15"
+        description = "Browser credential stealing"
         severity = "high"
-        category = "infostealer"
     strings:
-        $key1 = "GetAsyncKeyState" nocase
-        $key2 = "GetKeyState" nocase
-        $key3 = "GetKeyboardState" nocase
-        $hook1 = "SetWindowsHookEx" nocase
-        $hook2 = "WH_KEYBOARD"
-        $hook3 = "WH_KEYBOARD_LL"
-        $file1 = "CreateFile" nocase
-        $file2 = "WriteFile" nocase
+        $chrome1 = "\\Chrome\\User Data\\Default\\Login Data" ascii
+        $chrome2 = "\\Chrome\\User Data\\Default\\Cookies" ascii
+        $firefox1 = "\\Mozilla\\Firefox\\Profiles" ascii
+        $firefox2 = "logins.json" ascii
+        $edge = "\\Microsoft\\Edge\\User Data" ascii
+        $api1 = "CryptUnprotectData" ascii
+        $api2 = "sqlite3_open" ascii
     condition:
-        (any of ($key*) or any of ($hook*)) and
-        2 of ($file*)
+        uint16(0) == 0x5A4D and (2 of ($chrome*, $firefox*, $edge) or any of ($api*))
 }
 
-rule Password_Stealer {
+rule Stealer_Crypto_Wallet {
     meta:
-        description = "Password stealing behavior"
+        description = "Cryptocurrency wallet stealing"
         severity = "critical"
-        category = "credential_theft"
     strings:
-        $cred1 = "CredEnumerate" nocase
-        $cred2 = "CredReadA" nocase
-        $cred3 = "CredReadW" nocase
-        $vault1 = "VaultEnumerateVaults" nocase
-        $vault2 = "VaultEnumerateItems" nocase
-        $browser1 = "Login Data" nocase
-        $browser2 = "Cookies" nocase
-        $browser3 = "logins.json"
-        $browser4 = "key3.db"
-        $decrypt1 = "CryptUnprotectData" nocase
-        $sqlite = "sqlite3_" nocase
+        $btc = "wallet.dat" ascii
+        $eth1 = "Ethereum\\keystore" ascii
+        $eth2 = "MetaMask" ascii
+        $exodus = "exodus.wallet" ascii
+        $electrum = "electrum\\wallets" ascii
     condition:
-        (any of ($cred*) or 2 of ($vault*)) or
-        (2 of ($browser*) and ($decrypt1 or $sqlite))
+        uint16(0) == 0x5A4D and 2 of them
 }
 
-rule Browser_Data_Theft {
+rule Stealer_Email_Client {
     meta:
-        description = "Browser data exfiltration"
+        description = "Email client credential stealing"
         severity = "high"
-        category = "infostealer"
     strings:
-        $chrome1 = "\\Google\\Chrome\\User Data" nocase
-        $chrome2 = "Local State"
-        $firefox1 = "\\Mozilla\\Firefox\\Profiles" nocase
-        $firefox2 = "key4.db"
-        $edge = "\\Microsoft\\Edge\\User Data" nocase
-        $opera = "\\Opera Software" nocase
-        $login = "Login Data" nocase
-        $cookie = "Cookies" nocase
-        $wallet = "Wallet" nocase
-        $history = "History" nocase
-        $decrypt = "CryptUnprotectData" nocase
+        $outlook = "\\Microsoft\\Outlook" ascii
+        $thunder = "\\Thunderbird\\Profiles" ascii
+        $mail1 = "SMTP Password" ascii
+        $mail2 = "POP3 Password" ascii
+        $mail3 = "IMAP Password" ascii
     condition:
-        (any of ($chrome*) or any of ($firefox*) or $edge or $opera) and
-        2 of ($login, $cookie, $wallet, $history) and $decrypt
+        uint16(0) == 0x5A4D and (any of ($outlook, $thunder) or 2 of ($mail*))
 }
 
-rule Clipboard_Stealer {
+rule Stealer_FTP_Client {
     meta:
-        description = "Clipboard monitoring and theft"
-        severity = "medium"
-        category = "infostealer"
-    strings:
-        $clip1 = "GetClipboardData" nocase
-        $clip2 = "OpenClipboard" nocase
-        $clip3 = "SetClipboardViewer" nocase
-        $clip4 = "AddClipboardFormatListener" nocase
-        $crypto1 = /[13][a-km-zA-HJ-NP-Z1-9]{25,34}/ // Bitcoin address
-        $crypto2 = /0x[a-fA-F0-9]{40}/ // Ethereum address
-    condition:
-        2 of ($clip*) and (any of ($crypto*))
-}
-
-rule Form_Grabber {
-    meta:
-        description = "Form data interception"
+        description = "FTP client credential stealing"
         severity = "high"
-        category = "infostealer"
     strings:
-        $ie1 = "InternetGetCookie" nocase
-        $ie2 = "InternetSetCookie" nocase
-        $post1 = "POST" nocase
-        $post2 = "HttpSendRequest" nocase
-        $form1 = "password" nocase
-        $form2 = "username" nocase
-        $form3 = "login" nocase
-        $hook1 = "SetWindowsHookEx" nocase
+        $filezilla = "\\FileZilla\\recentservers.xml" ascii
+        $winscp = "\\WinSCP\\WinSCP.ini" ascii
+        $coreftp = "\\CoreFTP\\sites.idx" ascii
     condition:
-        (any of ($ie*) or 2 of ($post*)) and
-        2 of ($form*) and $hook1
+        uint16(0) == 0x5A4D and any of them
 }
 
-rule Screen_Capture {
+rule Stealer_Keylogger_API {
     meta:
-        description = "Screenshot capability"
-        severity = "medium"
-        category = "surveillance"
+        description = "Keylogging API usage"
+        severity = "high"
     strings:
-        $screen1 = "GetDC" nocase
-        $screen2 = "GetDesktopWindow" nocase
-        $screen3 = "BitBlt" nocase
-        $screen4 = "StretchBlt" nocase
-        $gdi1 = "CreateCompatibleDC" nocase
-        $gdi2 = "CreateCompatibleBitmap" nocase
-        $save1 = "GetDIBits" nocase
-        $save2 = "jpeg" nocase
-        $save3 = "png" nocase
+        $key1 = "GetAsyncKeyState" ascii
+        $key2 = "GetKeyState" ascii
+        $key3 = "SetWindowsHookEx" ascii
+        $key4 = "GetKeyboardState" ascii
     condition:
-        3 of ($screen*, $gdi*) and (any of ($save*))
+        uint16(0) == 0x5A4D and 2 of ($key*)
+}
+
+rule Stealer_Screenshot {
+    meta:
+        description = "Screen capture capability"
+        severity = "medium"
+    strings:
+        $gdi1 = "GetDC" ascii
+        $gdi2 = "BitBlt" ascii
+        $gdi3 = "CreateCompatibleDC" ascii
+        $gdi4 = "CreateCompatibleBitmap" ascii
+    condition:
+        uint16(0) == 0x5A4D and 3 of them
+}
+
+rule Stealer_Clipboard {
+    meta:
+        description = "Clipboard monitoring/stealing"
+        severity = "medium"
+    strings:
+        $clip1 = "GetClipboardData" ascii
+        $clip2 = "OpenClipboard" ascii
+        $clip3 = "SetClipboardViewer" ascii
+        $clip4 = "AddClipboardFormatListener" ascii
+    condition:
+        uint16(0) == 0x5A4D and 2 of them
 }

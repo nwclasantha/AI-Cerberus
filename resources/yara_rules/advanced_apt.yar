@@ -110,7 +110,7 @@ rule APT_REvil_Sodinokibi {
         $ransom = "-readme.txt" ascii
     condition:
         uint16(0) == 0x5A4D and
-        (3 of ($cfg*) or ($json and $ext) or $mutex)
+        (3 of ($cfg*) or ($json and $ext) or $mutex or $ransom)
 }
 
 rule APT_Conti_Ransomware {
@@ -143,7 +143,7 @@ rule APT_Emotet_Loader {
         $pdb = /[A-Z]:\\[^\\]+\\[^\\]+\.(pdb|PDB)/ ascii
     condition:
         uint16(0) == 0x5A4D and
-        (all of ($enc*) or all of ($api*) or ($str1 and any of ($enc*)))
+        (all of ($enc*) or all of ($api*) or ($str1 and any of ($enc*)) or $pdb)
 }
 
 rule APT_Qakbot_Banking {
@@ -291,7 +291,7 @@ rule APT_Silver_C2 {
         $cfg = {48 8D 05 ?? ?? ?? ?? 48 89 ?? 24}
     condition:
         uint16(0) == 0x5A4D and
-        ($go1 or ($go2 and (any of ($mtls, $dns, $http, $wg))))
+        ($go1 or ($go2 and (any of ($mtls, $dns, $http, $wg))) or $cfg)
 }
 
 rule APT_Brute_Ratel_C4 {

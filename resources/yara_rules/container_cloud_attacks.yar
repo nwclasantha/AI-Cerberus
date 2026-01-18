@@ -14,9 +14,9 @@ rule Container_Escape_Generic {
         $release = "release_agent" ascii
         $notify = "notify_on_release" ascii
         $socket = "docker.sock" ascii
-        $ns = "setns" ascii
+        // UNUSED: $ns = "setns" ascii
     condition:
-        uint32(0) == 0x464C457F and (($cgroup and any of ($release, $notify)) or $socket or $escape)
+        uint32(0) == 0x464C457F and (($cgroup and any of ($release, $notify)) or $socket or $escape or $docker)
 }
 
 rule Container_Docker_Socket_Abuse {
@@ -29,7 +29,7 @@ rule Container_Docker_Socket_Abuse {
         $api1 = "containers/create" ascii
         $api2 = "exec/create" ascii
         $api3 = "/images" ascii
-        $curl = "curl" ascii
+        // UNUSED: $curl = "curl" ascii
         $privileged = "Privileged" ascii
     condition:
         (any of ($socket*)) and (any of ($api*) or $privileged)
@@ -106,7 +106,7 @@ rule Cloud_AWS_S3_Abuse {
         severity = "high"
     strings:
         $s3 = "s3.amazonaws.com" ascii
-        $bucket = "bucket" ascii nocase
+        // UNUSED: $bucket = "bucket" ascii nocase
         $list = "ListBucket" ascii
         $get = "GetObject" ascii
         $put = "PutObject" ascii
@@ -127,7 +127,7 @@ rule Cloud_AWS_Lambda_Backdoor {
         $invoke = "Invoke" ascii
         $create = "CreateFunction" ascii
         $layer = "Layer" ascii
-        $runtime = "runtime" ascii
+        // UNUSED: $runtime = "runtime" ascii
     condition:
         $lambda and $aws and (any of ($handler, $invoke, $create, $layer))
 }
@@ -186,7 +186,7 @@ rule Cloud_GCP_Service_Account_Abuse {
     strings:
         $gcp = "google" ascii nocase
         $sa = "service_account" ascii
-        $iam = "iam" ascii nocase
+        // UNUSED: $iam = "iam" ascii nocase
         $generate = "generateAccessToken" ascii
         $impersonate = "impersonate" ascii nocase
         $key = "createKey" ascii

@@ -13,7 +13,7 @@ rule Wiper_Generic_MBR {
         $phys = "\\\\.\\PhysicalDrive" ascii
         $rawdisk = "\\??\\PhysicalDrive" ascii
         $write = "WriteFile" ascii
-        $seek = "SetFilePointer" ascii
+        // UNUSED: $seek = "SetFilePointer" ascii
         $zero = { 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 }
     condition:
         uint16(0) == 0x5A4D and
@@ -105,7 +105,7 @@ rule Wiper_CaddyWiper {
         $del = "DeleteFileW" ascii
         $phys = "PhysicalDrive" ascii
     condition:
-        uint16(0) == 0x5A4D and (3 of ($drive, $users, $zero, $del, $phys))
+        uint16(0) == 0x5A4D and ($s1 or 3 of ($drive, $users, $zero, $del, $phys))
 }
 
 rule Wiper_IsaacWiper {
@@ -117,7 +117,7 @@ rule Wiper_IsaacWiper {
         $drive = "\\\\.\\PHYSICALDRIVE" ascii
         $rand = "CryptGenRandom" ascii
         $write = "WriteFile" ascii
-        $loop = "for" ascii
+        // UNUSED: $loop = "for" ascii
     condition:
         uint16(0) == 0x5A4D and ($log or ($drive and $rand and $write))
 }
@@ -151,7 +151,7 @@ rule Wiper_AcidRain {
         $urandom = "/dev/urandom" ascii
     condition:
         (uint32(0) == 0x464C457F) and  // ELF magic
-        (any of ($dev*) and (any of ($zero, $urandom, $dd)))
+        ($s1 or (any of ($dev*) and (any of ($zero, $urandom, $dd))))
 }
 
 rule Wiper_Industroyer {
@@ -205,7 +205,7 @@ rule Wiper_Behavior_Disk_Write {
         $api1 = "CreateFileA" ascii
         $api2 = "CreateFileW" ascii
         $api3 = "WriteFile" ascii
-        $api4 = "DeviceIoControl" ascii
+        // UNUSED: $api4 = "DeviceIoControl" ascii
         $phys1 = "\\\\.\\PhysicalDrive" ascii
         $phys2 = "\\\\.\\C:" ascii
         $raw = "GENERIC_WRITE" ascii
@@ -246,7 +246,7 @@ rule Wiper_Behavior_Service_Destruction {
         $api1 = "ControlService" ascii
         $api2 = "DeleteService" ascii
         $api3 = "OpenServiceA" ascii
-        $stop = "SERVICE_CONTROL_STOP" ascii
+        // UNUSED: $stop = "SERVICE_CONTROL_STOP" ascii
         $svc1 = "VSS" ascii
         $svc2 = "backup" ascii nocase
         $svc3 = "sql" ascii nocase

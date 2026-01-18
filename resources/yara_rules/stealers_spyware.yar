@@ -212,7 +212,7 @@ rule Azorult_Stealer {
         $s1 = "AZORult" ascii
         $s2 = "azorult" nocase
         $xor = {33 C0 8A 04 01 32 04 02}
-        $cfg = "config" ascii
+        // UNUSED: $cfg = "config" ascii
     condition:
         any of ($s*) or $xor
 }
