@@ -1358,16 +1358,22 @@ class MainWindow(QMainWindow):
 
     def _save_report(self) -> None:
         """Save analysis report as PDF."""
+        print("[DEBUG] _save_report() called - toolbar Save Report button clicked")
         self._export_pdf_report()
 
     def _export_results(self) -> None:
         """Export analysis results as PDF report."""
+        print("[DEBUG] _export_results() called - toolbar Export button clicked")
         self._export_pdf_report()
 
     def _export_pdf_report(self) -> None:
         """Generate and export comprehensive PDF analysis report."""
         import os
 
+        # Visual debug - print to console to verify method is called
+        print("=" * 50)
+        print("EXPORT PDF REPORT CALLED!")
+        print("=" * 50)
         logger.info("Export PDF report requested")
 
         if not self._current_analysis_results:

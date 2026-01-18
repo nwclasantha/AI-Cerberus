@@ -40,7 +40,7 @@ integrations:
   malwarebazaar:
     enabled: true
   virustotal:
-    api_key: 'xxxxxxxxxxxxxxxxxxxxx'
+    api_key: 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
     enabled: true
     rate_limit: 4
 logging:

@@ -146,14 +146,24 @@ class MainToolbar(QToolBar):
         # Export menu
         export_btn = QToolButton()
         export_btn.setText("Export")
-        export_btn.setToolTip("Export analysis results")
+        export_btn.setToolTip("Export analysis results as PDF")
         export_btn.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
 
         export_menu = QMenu(export_btn)
-        export_menu.addAction("Export as JSON")
-        export_menu.addAction("Export as PDF")
-        export_menu.addAction("Export as CSV")
-        export_menu.addAction("Export as STIX")
+
+        # Connect all menu items to export signal (PDF is primary format)
+        json_action = export_menu.addAction("Export as JSON")
+        json_action.triggered.connect(self.export_requested.emit)
+
+        pdf_action = export_menu.addAction("Export as PDF")
+        pdf_action.triggered.connect(self.export_requested.emit)
+
+        csv_action = export_menu.addAction("Export as CSV")
+        csv_action.triggered.connect(self.export_requested.emit)
+
+        stix_action = export_menu.addAction("Export as STIX")
+        stix_action.triggered.connect(self.export_requested.emit)
+
         export_btn.setMenu(export_menu)
         export_btn.clicked.connect(self.export_requested.emit)
 
