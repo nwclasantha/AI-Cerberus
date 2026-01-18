@@ -32,6 +32,7 @@ from ..core import (
     PEAnalyzer, YaraEngine, BehaviorAnalyzer, Disassembler,
 )
 from ..core.false_positive_prevention import get_false_positive_prevention
+from ..core.report_generator import generate_pdf_report
 from ..ml import MalwareClassifier, get_auto_trainer
 from ..integrations import VirusTotalClient
 from ..database import get_repository
@@ -443,6 +444,7 @@ class MainWindow(QMainWindow):
         self._thread_pool.setMaxThreadCount(2)  # Limit concurrent analyses (prevent resource exhaustion)
         self._current_file: Optional[Path] = None
         self._current_data: Optional[bytes] = None
+        self._current_analysis_results: Optional[Dict] = None  # Store for PDF export
 
         # Batch processing state
         self._batch_queue: List[Path] = []
@@ -580,6 +582,7 @@ class MainWindow(QMainWindow):
 
         export_action = QAction("&Export Report...", self)
         export_action.setShortcut(QKeySequence("Ctrl+E"))
+        export_action.triggered.connect(self._export_pdf_report)
         file_menu.addAction(export_action)
 
         file_menu.addSeparator()
@@ -938,6 +941,11 @@ class MainWindow(QMainWindow):
         """Handle analysis completion."""
         self._progress.hide_progress()
         self._status_bar.finish_analysis()
+
+        # Store results for PDF export (copy without raw data to save memory)
+        self._current_analysis_results = {
+            k: v for k, v in results.items() if k != "_raw_file_data"
+        }
 
         # Track batch progress
         if self._is_batch_processing:
@@ -1349,20 +1357,127 @@ class MainWindow(QMainWindow):
         )
 
     def _save_report(self) -> None:
-        """Save analysis report."""
-        QMessageBox.information(
-            self,
-            "Save Report",
-            "Report saving functionality will be implemented soon!"
-        )
+        """Save analysis report as PDF."""
+        self._export_pdf_report()
 
     def _export_results(self) -> None:
-        """Export analysis results."""
-        QMessageBox.information(
+        """Export analysis results as PDF report."""
+        self._export_pdf_report()
+
+    def _export_pdf_report(self) -> None:
+        """Generate and export comprehensive PDF analysis report."""
+        import os
+
+        logger.info("Export PDF report requested")
+
+        if not self._current_analysis_results:
+            logger.warning("No analysis results available for export")
+            QMessageBox.warning(
+                self,
+                "No Analysis Results",
+                "Please analyze a file first before exporting a report."
+            )
+            return
+
+        # Get default filename and directory
+        filename = self._current_analysis_results.get("file_info", {}).get("filename", "analysis")
+        safe_name = "".join(c if c.isalnum() or c in "._-" else "_" for c in filename)
+        default_name = f"MalwareAnalysis_Report_{safe_name}.pdf"
+
+        # Use Desktop as default directory
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        if not os.path.exists(desktop_path):
+            desktop_path = os.path.expanduser("~")  # Fallback to home
+        default_path = os.path.join(desktop_path, default_name)
+
+        logger.info(f"Opening save dialog with default path: {default_path}")
+
+        # Use native file dialog (most reliable on Windows)
+        file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
-            "Export Results",
-            "Export functionality will be implemented soon!"
+            "Save Analysis Report",
+            default_path,
+            "PDF Files (*.pdf);;All Files (*)",
+            options=QFileDialog.Option.DontUseNativeDialog  # Use Qt dialog for better visibility
         )
+
+        logger.info(f"File dialog returned: '{file_path}'")
+
+        if not file_path:
+            logger.info("User cancelled file dialog")
+            return
+
+        # Ensure .pdf extension
+        if not file_path.lower().endswith('.pdf'):
+            file_path += '.pdf'
+
+        try:
+            self._status_bar.set_message("Generating PDF report...")
+            self._progress.show_progress(
+                title="Generating Report",
+                status="Creating comprehensive PDF report...",
+            )
+
+            logger.info(f"Starting PDF report generation for: {filename}")
+            logger.debug(f"Analysis results keys: {list(self._current_analysis_results.keys())}")
+
+            # Generate report
+            output_path = generate_pdf_report(
+                self._current_analysis_results,
+                Path(file_path),
+                include_disassembly=True,
+                include_strings=True,
+                max_strings=500,
+                max_disasm_lines=1000,
+            )
+
+            self._progress.hide_progress()
+            self._status_bar.set_message("Report generated successfully")
+            self._toast.success(f"Report saved: {output_path.name}")
+            logger.info(f"PDF report saved to: {output_path}")
+
+            # Ask if user wants to open the PDF
+            reply = QMessageBox.question(
+                self,
+                "Report Generated",
+                f"PDF report has been saved to:\n{output_path}\n\nWould you like to open it?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Open the PDF with default viewer
+                import os
+                import subprocess
+                import sys
+
+                if sys.platform == "win32":
+                    os.startfile(str(output_path))
+                elif sys.platform == "darwin":
+                    subprocess.run(["open", str(output_path)])
+                else:
+                    subprocess.run(["xdg-open", str(output_path)])
+
+        except ImportError as e:
+            self._progress.hide_progress()
+            QMessageBox.critical(
+                self,
+                "Missing Dependency",
+                f"PDF generation requires the 'reportlab' library.\n\n"
+                f"Please install it using:\npip install reportlab\n\nError: {e}"
+            )
+            logger.error(f"PDF export failed - missing reportlab: {e}")
+
+        except Exception as e:
+            self._progress.hide_progress()
+            import traceback
+            error_details = traceback.format_exc()
+            logger.error(f"PDF export failed: {e}\n{error_details}")
+            QMessageBox.critical(
+                self,
+                "Export Failed",
+                f"Failed to generate PDF report:\n{e}\n\nCheck the logs for details."
+            )
 
     def _refresh_view(self) -> None:
         """Refresh current view."""

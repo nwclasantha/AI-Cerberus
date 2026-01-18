@@ -35,6 +35,11 @@ from .auto_learning_engine import (
     AutoLearnDecision,
     get_auto_learning_engine,
 )
+from .report_generator import (
+    EnterpriseReportGenerator,
+    generate_pdf_report,
+    get_report_generator,
+)
 
 __all__ = [
     "BaseAnalyzer",
@@ -82,4 +87,8 @@ __all__ = [
     "AutoLearningDatabase",
     "AutoLearnDecision",
     "get_auto_learning_engine",
+    # PDF Report Generator
+    "EnterpriseReportGenerator",
+    "generate_pdf_report",
+    "get_report_generator",
 ]
